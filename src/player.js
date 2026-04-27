@@ -1,0 +1,100 @@
+/**
+ * Project Mayhem: Player Entity
+ * Handles controls, movement, and combat state.
+ */
+export class Player {
+    constructor() {
+        this.x = 100;
+        this.y = 300;
+        this.vx = 0;
+        this.width = 40;
+        this.height = 80;
+        
+        this.stamina = 100;
+        this.isAttacking = false;
+        this.isBlocking = false;
+        this.attackCooldown = 0;
+        this.hitResolved = false;
+
+        // Input state
+        this.keys = {};
+        window.addEventListener('keydown', e => this.keys[e.code] = true);
+        window.addEventListener('keyup', e => this.keys[e.code] = false);
+    }
+
+    update(deltaTime, mode, sanityTier) {
+        // Personality Modifiers
+        const speed = mode === 'CHAOS' ? 0.8 : 0.5;
+        const friction = 0.85;
+
+        // Apply Input Jitter in Chaos mode
+        let moveX = 0;
+        if (this.keys['KeyA']) moveX -= 1;
+        if (this.keys['KeyD']) moveX += 1;
+
+        if (mode === 'CHAOS' && Math.random() < 0.1) {
+            moveX += (Math.random() - 0.5) * 2;
+        }
+
+        // Apply input delay at low sanity
+        if (sanityTier === 'DISTORTED' || sanityTier === 'HALLUCINATING') {
+            // Simulated delay would require a buffer, 
+            // for MVP we reduce responsiveness
+            this.vx += moveX * speed * 0.5;
+        } else {
+            this.vx += moveX * speed;
+        }
+
+        this.x += this.vx * deltaTime;
+        this.vx *= friction;
+
+        // Ground lock (MVP simplification)
+        this.y = window.innerHeight - 150;
+
+        // Combat actions
+        if (this.keys['KeyJ'] && this.attackCooldown <= 0 && this.stamina > 20) {
+            this.isAttacking = true;
+            this.attackCooldown = 400;
+            this.stamina -= 20;
+            this.hitResolved = false;
+        }
+
+        this.isBlocking = this.keys['KeyK'];
+
+        if (this.attackCooldown > 0) {
+            this.attackCooldown -= deltaTime;
+            if (this.attackCooldown <= 200) this.isAttacking = false;
+        }
+
+        // Stamina regen
+        if (!this.isAttacking && this.stamina < 100) {
+            this.stamina += 0.05 * deltaTime;
+        }
+    }
+
+    draw(ctx, mode) {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+
+        // Body Color based on Mode
+        ctx.fillStyle = mode === 'RATIONAL' ? '#0088ff' : '#ff0044';
+        
+        // Character is a minimalist rectangle
+        ctx.fillRect(-this.width/2, -this.height, this.width, this.height);
+
+        // Attack Visualization
+        if (this.isAttacking) {
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(this.width/2, -this.height/2 - 5, 30, 10);
+        }
+
+        // Block Visualization
+        if (this.isBlocking) {
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(-this.width/2 - 5, -this.height - 5, this.width + 10, this.height + 10);
+        }
+
+        ctx.restore();
+    }
+}
