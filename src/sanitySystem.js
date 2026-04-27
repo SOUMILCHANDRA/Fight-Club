@@ -6,6 +6,7 @@ export class SanitySystem {
     constructor() {
         this.value = 100;
         this.tier = 'STABLE'; // STABLE, GLITCHY, DISTORTED, HALLUCINATING
+        this.message = ""; // "WAKE UP" messages
     }
 
     update(deltaTime, mode) {
