@@ -1,0 +1,80 @@
+/**
+ * Project Mayhem: Enemy Entity
+ * Simple state machine AI (Idle, Follow, Attack).
+ */
+export class Enemy {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.vx = 0;
+        this.width = 40;
+        this.height = 80;
+        
+        this.health = 100;
+        this.state = 'IDLE'; // IDLE, FOLLOW, ATTACK, STUNNED
+        this.stunTimer = 0;
+        this.attackCooldown = 0;
+        this.isAttacking = false;
+        this.hitResolved = false;
+    }
+
+    update(deltaTime, player) {
+        if (this.stunTimer > 0) {
+            this.stunTimer -= deltaTime;
+            this.state = 'STUNNED';
+            return;
+        }
+
+        const distance = Math.abs(this.x - player.x);
+        
+        // AI State Machine
+        if (distance > 300) {
+            this.state = 'IDLE';
+        } else if (distance > 60) {
+            this.state = 'FOLLOW';
+            const dir = player.x < this.x ? -1 : 1;
+            this.vx += dir * 0.2;
+        } else {
+            this.state = 'ATTACK';
+            if (this.attackCooldown <= 0) {
+                this.isAttacking = true;
+                this.attackCooldown = 1000;
+                this.hitResolved = false;
+            }
+        }
+
+        // Physics
+        this.x += this.vx * deltaTime;
+        this.vx *= 0.85;
+        this.y = window.innerHeight - 150;
+
+        // Timers
+        if (this.attackCooldown > 0) {
+            this.attackCooldown -= deltaTime;
+            if (this.attackCooldown <= 800) this.isAttacking = false;
+        }
+    }
+
+    takeDamage(amount) {
+        this.health -= amount;
+        this.stunTimer = 400;
+        this.vx = 0;
+    }
+
+    draw(ctx) {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+
+        // Enemy is a gray rectangle
+        ctx.fillStyle = this.state === 'STUNNED' ? '#444' : '#888';
+        ctx.fillRect(-this.width/2, -this.height, this.width, this.height);
+
+        // Attack visualization
+        if (this.isAttacking) {
+            ctx.fillStyle = '#ff0044';
+            ctx.fillRect(-this.width/2 - 30, -this.height/2 - 5, 30, 10);
+        }
+
+        ctx.restore();
+    }
+}
