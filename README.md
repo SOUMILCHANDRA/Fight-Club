@@ -67,11 +67,14 @@ The story is non-linear, branching based on your sanity, combat record, and choi
 *   Consequence System (Police/Heat)
 *   Branching Narrative & Reality Breakdown Events
 
----
-
-## 💡 The Philosophy
-Most games are power fantasies. **Project Mayhem** is a simulator of instability. You don't just win fights; you lose yourself.
+## 🏗 Architecture (Modular ES6)
+The project is built with a system-first approach, using decoupled modules for high performance and extensibility:
+*   `main.js`: Bootstraps systems.
+*   `gameLoop.js`: Delta-time orchestration.
+*   `sanitySystem.js`: Mental state tiers.
+*   `effects.js`: Canvas distortions and particles.
 
 ---
 
 *“The first rule of Project Mayhem is you do not ask questions.”*
+*v1.0.4-BETA*
