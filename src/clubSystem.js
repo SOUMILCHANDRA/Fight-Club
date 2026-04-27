@@ -7,10 +7,12 @@ export class ClubSystem {
         this.members = [];
         this.reputation = 0;
         this.policeAttention = 0;
+        this.namePool = ["Jack", "Tyler", "Marla", "Cornelius", "Rupert", "Angel Face"];
     }
 
-    recruit(name) {
+    recruit() {
         if (this.members.length < 10) {
+            const name = this.namePool[Math.floor(Math.random() * this.namePool.length)];
             this.members.push({
                 name: name,
                 loyalty: 50 + Math.random() * 50,
