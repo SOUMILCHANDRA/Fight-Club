@@ -9,6 +9,7 @@ export class Effects {
         this.shakeTime = 0;
         this.shakeIntensity = 0;
         this.particles = [];
+        this.labels = [];
     }
 
     clear(tier) {
