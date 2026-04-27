@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Mayhem | Loss of Control Simulator</title>
+    <link rel="stylesheet" href="src/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="game-container">
+        <!-- The Main Stage -->
+        <canvas id="game-canvas"></canvas>
+        
+        <!-- Text-based HUD (No bars, just data) -->
+        <div id="hud">
+            <div id="sanity-status">STABILITY: NOMINAL</div>
+            <div id="personality-status">MODE: RATIONAL</div>
+            <div id="stamina-status">VITALITY: 100%</div>
+            <div id="rep-status">RESPECT: 0</div>
+            <div id="heat-status">HEAT: 0%</div>
+        </div>
+
+        <!-- System Overlays -->
+        <div id="overlay" class="active">
+            <div class="content">
+                <h1 id="title">PROJECT MAYHEM</h1>
+                <p id="message">"It's only after we've lost everything that we're free to do anything."</p>
+                
+                <div id="club-menu" class="hidden">
+                    <h3>CLUB DIRECTORY</h3>
+                    <div id="member-list"></div>
+                </div>
+
+                <div id="controls-hint">
+                    [WASD] MOVE | [J] STRIKE | [K] GUARD | [SPACE] SHIFT
+                </div>
+
+                <button id="action-btn">INITIATE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Entry Point -->
+    <script type="module" src="src/main.js"></script>
+</body>
+</html>
