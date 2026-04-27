@@ -42,6 +42,9 @@ export class GameLoop {
         const deltaTime = currentTime - this.lastTime;
         this.lastTime = currentTime;
 
+        // FPS Tracking (Debug)
+        // if (Math.random() < 0.01) console.log(`FPS: ${Math.floor(1000 / deltaTime)}`);
+
         // 1. UPDATE
         this.update(deltaTime);
 
