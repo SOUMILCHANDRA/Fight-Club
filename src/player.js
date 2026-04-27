@@ -1,6 +1,6 @@
 /**
- * Project Mayhem: Player Entity
- * Handles controls, movement, and combat state.
+ * Player class represents the user-controlled entity.
+ * Handles physics, input processing, and combat state.
  */
 export class Player {
     constructor() {
