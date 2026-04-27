@@ -19,7 +19,8 @@ export class Combat {
                     
                     // Visual feedback
                     this.effects.shake(10, 200);
-                    this.effects.spawnParticles(enemy.x, enemy.y - 40, '#fff');
+                    const pColor = Math.random() > 0.8 ? '#ff0044' : '#fff';
+                    this.effects.spawnParticles(enemy.x, enemy.y - 40, pColor);
                 }
             });
         }
