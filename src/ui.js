@@ -46,4 +46,9 @@ export class UI {
         overlay.classList.remove('active');
         overlay.classList.add('hidden');
     }
+
+    showFailure() {
+        this.showOverlay("SYSTEM FAILURE", "Reality buffer overflow. Memory corruption detected.");
+        document.getElementById('overlay').style.color = '#ff0044';
+    }
 }
