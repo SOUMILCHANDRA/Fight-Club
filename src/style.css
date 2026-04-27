@@ -1,0 +1,134 @@
+/* Project Mayhem: Minimalist Dark Aesthetic */
+:root {
+    --bg: #050505;
+    --fg: #f0f0f0;
+    --accent: #ffffff;
+    --chaos: #ff0044;
+    --rational: #0088ff;
+    --font: 'Space Mono', monospace;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    cursor: crosshair;
+}
+
+body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font);
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+}
+
+#game-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+canvas {
+    display: block;
+    background: #000;
+}
+
+/* Text-based HUD */
+#hud {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+    pointer-events: none;
+    text-transform: uppercase;
+}
+
+#sanity-status { color: #fff; }
+#personality-status { transition: color 0.3s; }
+#heat-status { color: var(--chaos); }
+
+/* Overlays */
+#overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    transition: opacity 0.5s ease;
+}
+
+.content {
+    text-align: center;
+    max-width: 600px;
+    padding: 40px;
+}
+
+h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    letter-spacing: -2px;
+}
+
+p {
+    font-size: 0.9rem;
+    margin-bottom: 40px;
+    opacity: 0.7;
+    line-height: 1.6;
+}
+
+#controls-hint {
+    font-size: 0.6rem;
+    margin-bottom: 20px;
+    opacity: 0.4;
+}
+
+#action-btn {
+    background: var(--fg);
+    color: var(--bg);
+    border: none;
+    padding: 15px 40px;
+    font-family: var(--font);
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+    transition: all 0.2s;
+}
+
+#action-btn:hover {
+    background: var(--chaos);
+    color: #fff;
+    transform: scale(1.05);
+}
+
+.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+/* Glitch Animations */
+@keyframes flicker {
+    0% { opacity: 0.9; }
+    50% { opacity: 1; }
+    100% { opacity: 0.9; }
+}
+
+.glitch-text {
+    animation: flicker 0.1s infinite;
+}
