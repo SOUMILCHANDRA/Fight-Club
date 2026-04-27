@@ -25,7 +25,7 @@ export class Player {
     update(deltaTime, mode, sanityTier) {
         // Personality Modifiers
         const speed = mode === 'CHAOS' ? 0.8 : 0.5;
-        const friction = 0.85;
+        const friction = 0.9; // Increased for snappier movement
 
         // Apply Input Jitter in Chaos mode
         let moveX = 0;
