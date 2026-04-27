@@ -39,8 +39,11 @@ export class GameLoop {
         if (!this.isRunning) return;
 
         // Calculate Delta Time
-        const deltaTime = currentTime - this.lastTime;
+        let deltaTime = currentTime - this.lastTime;
         this.lastTime = currentTime;
+
+        // Cap deltaTime to prevent huge jumps (e.g. tab switching)
+        if (deltaTime > 100) deltaTime = 16; 
 
         // FPS Tracking (Debug)
         // if (Math.random() < 0.01) console.log(`FPS: ${Math.floor(1000 / deltaTime)}`);
