@@ -1,0 +1,87 @@
+/**
+ * Project Mayhem: Game Loop
+ * Handles requestAnimationFrame, delta time, and orchestration of game states.
+ */
+import { Player } from './player.js';
+import { Enemy } from './enemy.js';
+import { Combat } from './combat.js';
+import { SanitySystem } from './sanitySystem.js';
+import { PersonalitySystem } from './personalitySystem.js';
+import { Effects } from './effects.js';
+
+export class GameLoop {
+    constructor(canvas, ctx, ui) {
+        this.canvas = canvas;
+        this.ctx = ctx;
+        this.ui = ui;
+        
+        // Systems
+        this.sanity = new SanitySystem();
+        this.personality = new PersonalitySystem(this.sanity);
+        this.effects = new Effects(ctx, canvas);
+        this.combat = new Combat(this.effects, this.sanity);
+        
+        // Entities
+        this.player = new Player();
+        this.enemies = [new Enemy(canvas.width - 200, canvas.height - 150)];
+        
+        this.lastTime = 0;
+        this.isRunning = false;
+        this.state = 'FIGHT'; // FIGHT, MENU, MISSION
+    }
+
+    start() {
+        this.isRunning = true;
+        requestAnimationFrame((t) => this.loop(t));
+    }
+
+    loop(currentTime) {
+        if (!this.isRunning) return;
+
+        // Calculate Delta Time
+        const deltaTime = currentTime - this.lastTime;
+        this.lastTime = currentTime;
+
+        // 1. UPDATE
+        this.update(deltaTime);
+
+        // 2. RENDER
+        this.render(deltaTime);
+
+        requestAnimationFrame((t) => this.loop(t));
+    }
+
+    update(deltaTime) {
+        // Update Personality & Sanity
+        this.personality.update(deltaTime);
+        this.sanity.update(deltaTime, this.personality.mode);
+        
+        // Update Entities
+        this.player.update(deltaTime, this.personality.mode, this.sanity.tier);
+        
+        this.enemies.forEach(enemy => {
+            enemy.update(deltaTime, this.player);
+        });
+
+        // Handle Combat Logic
+        this.combat.process(this.player, this.enemies);
+
+        // Sync UI
+        this.ui.sync(this.player, this.sanity, this.personality);
+    }
+
+    render(deltaTime) {
+        // Clear screen with sanity-based flicker
+        this.effects.clear(this.sanity.tier);
+        
+        // Draw World
+        this.effects.drawEnvironment();
+
+        // Draw Entities (Placeholder shapes)
+        this.player.draw(this.ctx, this.personality.mode);
+        this.enemies.forEach(enemy => enemy.draw(this.ctx));
+
+        // Post-processing
+        this.effects.render(deltaTime, this.sanity.tier);
+    }
+}
