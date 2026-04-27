@@ -52,6 +52,18 @@ export class Effects {
     }
 
     render(deltaTime, tier) {
+        // 0. Vignette (Sanity-based)
+        if (tier !== 'STABLE') {
+            const grad = this.ctx.createRadialGradient(
+                this.canvas.width/2, this.canvas.height/2, 0,
+                this.canvas.width/2, this.canvas.height/2, this.canvas.width
+            );
+            grad.addColorStop(0.5, 'transparent');
+            grad.addColorStop(1, 'rgba(0,0,0,0.8)');
+            this.ctx.fillStyle = grad;
+            this.ctx.fillRect(0,0, this.canvas.width, this.canvas.height);
+        }
+
         this.ctx.save();
 
         // 1. Screen Shake
