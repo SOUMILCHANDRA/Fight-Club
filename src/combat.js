@@ -18,7 +18,8 @@ export class Combat {
                     player.hitResolved = true;
                     
                     // Visual feedback
-                    this.effects.shake(10, 200);
+                    const intensity = 10 + (100 - player.stamina) / 10;
+                    this.effects.shake(intensity, 200);
                     const pColor = Math.random() > 0.8 ? '#ff0044' : '#fff';
                     this.effects.spawnParticles(enemy.x, enemy.y - 40, pColor);
                 }
