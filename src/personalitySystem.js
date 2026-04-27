@@ -8,11 +8,17 @@ export class PersonalitySystem {
         this.mode = 'RATIONAL'; // RATIONAL or CHAOS
         this.switchCooldown = 0;
         this.forcedTimer = 0;
+        this.spacePressed = false;
 
         window.addEventListener('keydown', e => {
-            if (e.code === 'Space' && this.switchCooldown <= 0) {
+            if (e.code === 'Space' && !this.spacePressed && this.switchCooldown <= 0) {
                 this.toggle();
+                this.spacePressed = true;
             }
+        });
+
+        window.addEventListener('keyup', e => {
+            if (e.code === 'Space') this.spacePressed = false;
         });
     }
 
