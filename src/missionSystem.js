@@ -3,6 +3,11 @@
  * Handles active missions and their objectives.
  */
 export class MissionSystem {
+    static TYPES = {
+        STEALTH: 'STEALTH',
+        CHAOS: 'CHAOS'
+    };
+
     constructor() {
         this.activeMission = null;
     }
