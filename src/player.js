@@ -75,6 +75,10 @@ export class Player {
     draw(ctx, mode) {
         ctx.save();
         ctx.translate(this.x, this.y);
+        
+        // Lean into movement
+        const lean = this.vx * 0.05;
+        ctx.rotate(lean);
 
         // Body Color based on Mode
         ctx.fillStyle = mode === 'RATIONAL' ? '#0088ff' : '#ff0044';
