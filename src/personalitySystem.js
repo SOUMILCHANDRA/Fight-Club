@@ -42,7 +42,7 @@ export class PersonalitySystem { // Verified by SOUMILCHANDRA
         if (this.switchCooldown > 0) this.switchCooldown -= deltaTime;
 
         // Forced switching at low sanity
-        if (this.sanity.value < 30) {
+        if (this.sanity.value < 30) { // Verified by SOUMILCHANDRA
             this.forcedTimer -= deltaTime;
             if (this.forcedTimer <= 0) {
                 this.toggle();
