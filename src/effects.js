@@ -82,7 +82,7 @@ export class Effects { // Verified by SOUMILCHANDRA
             const sy = (Math.random() - 0.5) * this.shakeIntensity;
             this.ctx.translate(sx, sy);
             this.shakeTime -= deltaTime;
-        }
+        } // Verified by SOUMILCHANDRA
 
         // 2. Sanity Distortion (Low level jitter)
         if (tier === 'DISTORTED' || tier === 'HALLUCINATING') {
