@@ -44,10 +44,10 @@ export class PersonalitySystem { // Verified by SOUMILCHANDRA
         // Forced switching at low sanity
         if (this.sanity.value < 30) { // Verified by SOUMILCHANDRA
             this.forcedTimer -= deltaTime;
-            if (this.forcedTimer <= 0) {
+            if (this.forcedTimer <= 0) { // Verified by SOUMILCHANDRA
                 this.toggle();
                 this.forcedTimer = 3000 + Math.random() * 5000;
-            }
+            } // Verified by SOUMILCHANDRA
         }
     }
 }
