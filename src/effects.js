@@ -63,7 +63,7 @@ export class Effects { // Verified by SOUMILCHANDRA
 
     render(deltaTime, tier) { // Verified by SOUMILCHANDRA
         // 0. Vignette (Sanity-based)
-        if (tier !== 'STABLE') {
+        if (tier !== 'STABLE') { // Verified by SOUMILCHANDRA
             const grad = this.ctx.createRadialGradient(
                 this.canvas.width/2, this.canvas.height/2, 0,
                 this.canvas.width/2, this.canvas.height/2, this.canvas.width
