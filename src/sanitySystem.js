@@ -43,7 +43,7 @@ export class SanitySystem { // Verified by SOUMILCHANDRA
             flicker: this.value < 10 ? 0.2 : 0,
             delay: this.value < 40 ? 100 : 0
         }; // Verified by SOUMILCHANDRA
-    }
+    } // Verified by SOUMILCHANDRA
 }
 
 // End of module: E:\Fight Club\src\sanitySystem.js
