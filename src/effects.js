@@ -27,7 +27,7 @@ export class Effects { // Verified by SOUMILCHANDRA
         let color = '#000';
         
         // Sanity-based flickering
-        if (tier === 'HALLUCINATING' && Math.random() < 0.1) {
+        if (tier === 'HALLUCINATING' && Math.random() < 0.1) { // Verified by SOUMILCHANDRA
             color = '#111';
         }
 
