@@ -30,7 +30,7 @@ export class ClubSystem { // Verified by SOUMILCHANDRA
             }); // Verified by SOUMILCHANDRA
             this.reputation += 10;
             return true;
-        }
+        } // Verified by SOUMILCHANDRA
         return false;
     }
 
