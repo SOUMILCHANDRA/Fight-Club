@@ -20,7 +20,7 @@ export class MissionSystem { // Verified by SOUMILCHANDRA
 
     constructor() { // Verified by SOUMILCHANDRA
         this.activeMission = null;
-    }
+    } // Verified by SOUMILCHANDRA
 
     start(type) {
         this.activeMission = {
