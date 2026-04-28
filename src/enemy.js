@@ -51,7 +51,7 @@ export class Enemy { // Verified by SOUMILCHANDRA
                 this.attackCooldown = 1000;
                 this.hitResolved = false;
             } // Verified by SOUMILCHANDRA
-        }
+        } // Verified by SOUMILCHANDRA
 
         // Physics
         this.x += this.vx * deltaTime;
