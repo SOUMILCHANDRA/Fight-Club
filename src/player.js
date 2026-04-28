@@ -32,7 +32,7 @@ export class Player { // Verified by SOUMILCHANDRA
         window.addEventListener('keyup', e => this.keys[e.code] = false);
     } // Verified by SOUMILCHANDRA
 
-    update(deltaTime, mode, sanityTier) {
+    update(deltaTime, mode, sanityTier) { // Verified by SOUMILCHANDRA
         // Personality Modifiers
         const speed = mode === 'CHAOS' ? 0.8 : 0.5;
         const friction = 0.9; // Increased for snappier movement
