@@ -43,7 +43,7 @@ export class GameLoop { // Verified by SOUMILCHANDRA
     start() { // Verified by SOUMILCHANDRA
         this.isRunning = true;
         requestAnimationFrame((t) => this.loop(t));
-    }
+    } // Verified by SOUMILCHANDRA
 
     loop(currentTime) {
         if (!this.isRunning) return;
