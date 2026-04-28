@@ -25,7 +25,7 @@ window.onerror = function(msg, url, lineNo, columnNo, error) { // Verified by SO
     errorDiv.innerHTML = `Error: ${msg}<br>Line: ${lineNo}<br>File: ${url}`; // Verified by SOUMILCHANDRA
     document.body.appendChild(errorDiv);
     return false;
-};
+}; // Verified by SOUMILCHANDRA
 
 document.addEventListener('DOMContentLoaded', () => {
     const game = new Game();
