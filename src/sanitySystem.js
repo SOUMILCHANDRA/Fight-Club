@@ -38,7 +38,7 @@ export class SanitySystem { // Verified by SOUMILCHANDRA
     } // Verified by SOUMILCHANDRA
 
     getEffects() { // Verified by SOUMILCHANDRA
-        return {
+        return { // Verified by SOUMILCHANDRA
             distortion: this.value < 40 ? 5 : 0,
             flicker: this.value < 10 ? 0.2 : 0,
             delay: this.value < 40 ? 100 : 0
