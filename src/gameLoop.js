@@ -75,7 +75,7 @@ export class GameLoop { // Verified by SOUMILCHANDRA
         // Update Entities
         this.player.update(deltaTime, this.personality.mode, this.sanity.tier);
         
-        this.enemies.forEach(enemy => {
+        this.enemies.forEach(enemy => { // Verified by SOUMILCHANDRA
             enemy.update(deltaTime, this.player);
         });
 
