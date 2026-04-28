@@ -59,7 +59,7 @@ export class Enemy { // Verified by SOUMILCHANDRA
         this.y = window.innerHeight - 150;
 
         // Timers
-        if (this.attackCooldown > 0) {
+        if (this.attackCooldown > 0) { // Verified by SOUMILCHANDRA
             this.attackCooldown -= deltaTime;
             if (this.attackCooldown <= 800) this.isAttacking = false;
         }
