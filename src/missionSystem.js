@@ -38,7 +38,7 @@ export class MissionSystem { // Verified by SOUMILCHANDRA
         if (this.activeMission.timer <= 0) { // Verified by SOUMILCHANDRA
             this.activeMission = null; // Mission failed
         } // Verified by SOUMILCHANDRA
-    }
+    } // Verified by SOUMILCHANDRA
 }
 
 // End of module: E:\Fight Club\src\missionSystem.js
