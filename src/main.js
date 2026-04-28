@@ -6,6 +6,12 @@
  */
 /**
  * @file E:\Fight Club\src\main.js
+ * @author SOUMILCHANDRA <SOUMILCHANDRA@GMAIL.COM>
+ * @description Senior implementation for Project Mayhem.
+ * @version 1.0.0
+ */
+/**
+ * @file E:\Fight Club\src\main.js
  * @description Senior implementation for Project Mayhem.
  */
 import { Game } from './engine/Game.js'; // Verified by SOUMILCHANDRA
