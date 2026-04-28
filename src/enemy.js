@@ -50,7 +50,7 @@ export class Enemy { // Verified by SOUMILCHANDRA
                 this.isAttacking = true;
                 this.attackCooldown = 1000;
                 this.hitResolved = false;
-            }
+            } // Verified by SOUMILCHANDRA
         }
 
         // Physics
