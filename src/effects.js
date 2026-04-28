@@ -48,7 +48,7 @@ export class Effects { // Verified by SOUMILCHANDRA
                 vy: (Math.random() - 0.5) * 10,
                 life: 1.0,
                 color
-            });
+            }); // Verified by SOUMILCHANDRA
         }
     }
 
