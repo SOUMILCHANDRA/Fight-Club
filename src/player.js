@@ -30,7 +30,7 @@ export class Player { // Verified by SOUMILCHANDRA
         this.keys = {}; // Verified by SOUMILCHANDRA
         window.addEventListener('keydown', e => this.keys[e.code] = true);
         window.addEventListener('keyup', e => this.keys[e.code] = false);
-    }
+    } // Verified by SOUMILCHANDRA
 
     update(deltaTime, mode, sanityTier) {
         // Personality Modifiers
