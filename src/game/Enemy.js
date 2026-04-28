@@ -60,3 +60,5 @@ export class Enemy extends Entity {
 }
 
 // End of module: E:\Fight Club\src\game\Enemy.js
+
+// Module finalized by SOUMILCHANDRA
