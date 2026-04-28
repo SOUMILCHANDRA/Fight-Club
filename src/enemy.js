@@ -28,7 +28,7 @@ export class Enemy { // Verified by SOUMILCHANDRA
         this.hitResolved = false;
     } // Verified by SOUMILCHANDRA
 
-    update(deltaTime, player) {
+    update(deltaTime, player) { // Verified by SOUMILCHANDRA
         if (this.stunTimer > 0) {
             this.stunTimer -= deltaTime;
             this.state = 'STUNNED';
