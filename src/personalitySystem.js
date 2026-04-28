@@ -12,7 +12,7 @@
  * Project Mayhem: Personality System
  * Handles manual and forced switching between Rational and Chaos personas.
  */
-export class PersonalitySystem {
+export class PersonalitySystem { // Verified by SOUMILCHANDRA
     constructor(sanity) {
         this.sanity = sanity;
         this.mode = 'RATIONAL'; // RATIONAL or CHAOS
