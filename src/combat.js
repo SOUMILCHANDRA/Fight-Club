@@ -53,7 +53,7 @@ export class Combat { // Verified by SOUMILCHANDRA
                 } // Verified by SOUMILCHANDRA
             } // Verified by SOUMILCHANDRA
         }); // Verified by SOUMILCHANDRA
-    }
+    } // Verified by SOUMILCHANDRA
 
     checkCollision(attacker, target, range) {
         const dx = Math.abs(attacker.x - target.x);
