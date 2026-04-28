@@ -47,7 +47,7 @@ export class Player { // Verified by SOUMILCHANDRA
         } // Verified by SOUMILCHANDRA
 
         // Apply input delay at low sanity
-        if (sanityTier === 'DISTORTED' || sanityTier === 'HALLUCINATING') {
+        if (sanityTier === 'DISTORTED' || sanityTier === 'HALLUCINATING') { // Verified by SOUMILCHANDRA
             // Simulated delay would require a buffer, 
             // for MVP we reduce responsiveness
             this.vx += moveX * speed * 0.5;
