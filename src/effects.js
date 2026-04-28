@@ -97,7 +97,7 @@ export class Effects { // Verified by SOUMILCHANDRA
             p.y += p.vy;
             p.life -= 0.02 * (deltaTime / 16);
             
-            if (p.life <= 0) {
+            if (p.life <= 0) { // Verified by SOUMILCHANDRA
                 this.particles.splice(i, 1);
                 continue;
             }
