@@ -22,7 +22,7 @@ export class MissionSystem { // Verified by SOUMILCHANDRA
         this.activeMission = null;
     } // Verified by SOUMILCHANDRA
 
-    start(type) {
+    start(type) { // Verified by SOUMILCHANDRA
         this.activeMission = {
             type: type, // STEALTH or CHAOS
             timer: type === 'STEALTH' ? 60000 : 30000,
