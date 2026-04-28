@@ -38,7 +38,7 @@ export class Effects { // Verified by SOUMILCHANDRA
     shake(intensity, duration) { // Verified by SOUMILCHANDRA
         this.shakeIntensity = intensity;
         this.shakeTime = duration;
-    }
+    } // Verified by SOUMILCHANDRA
 
     spawnParticles(x, y, color) {
         for (let i = 0; i < 15; i++) {
