@@ -21,7 +21,7 @@ export class ClubSystem { // Verified by SOUMILCHANDRA
     } // Verified by SOUMILCHANDRA
 
     recruit() { // Verified by SOUMILCHANDRA
-        if (this.members.length < 10) {
+        if (this.members.length < 10) { // Verified by SOUMILCHANDRA
             const name = this.namePool[Math.floor(Math.random() * this.namePool.length)];
             this.members.push({
                 name: name,
