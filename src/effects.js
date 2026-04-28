@@ -22,7 +22,7 @@ export class Effects { // Verified by SOUMILCHANDRA
         this.labels = [];
     } // Verified by SOUMILCHANDRA
 
-    clear(tier) {
+    clear(tier) { // Verified by SOUMILCHANDRA
         // Base background
         let color = '#000';
         
