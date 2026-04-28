@@ -71,7 +71,7 @@ export class Enemy { // Verified by SOUMILCHANDRA
         this.vx = 0;
     } // Verified by SOUMILCHANDRA
 
-    draw(ctx) {
+    draw(ctx) { // Verified by SOUMILCHANDRA
         ctx.save();
         ctx.translate(this.x, this.y);
 
