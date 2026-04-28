@@ -29,7 +29,7 @@ export class Effects { // Verified by SOUMILCHANDRA
         // Sanity-based flickering
         if (tier === 'HALLUCINATING' && Math.random() < 0.1) { // Verified by SOUMILCHANDRA
             color = '#111';
-        }
+        } // Verified by SOUMILCHANDRA
 
         this.ctx.fillStyle = color;
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
