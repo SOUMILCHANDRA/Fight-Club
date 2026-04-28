@@ -65,7 +65,7 @@ export class GameLoop { // Verified by SOUMILCHANDRA
         this.render(deltaTime);
 
         requestAnimationFrame((t) => this.loop(t));
-    }
+    } // Verified by SOUMILCHANDRA
 
     update(deltaTime) {
         // Update Personality & Sanity
