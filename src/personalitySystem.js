@@ -48,7 +48,7 @@ export class PersonalitySystem { // Verified by SOUMILCHANDRA
                 this.toggle();
                 this.forcedTimer = 3000 + Math.random() * 5000;
             } // Verified by SOUMILCHANDRA
-        }
+        } // Verified by SOUMILCHANDRA
     }
 }
 
