@@ -40,7 +40,7 @@ export class Effects { // Verified by SOUMILCHANDRA
         this.shakeTime = duration;
     } // Verified by SOUMILCHANDRA
 
-    spawnParticles(x, y, color) {
+    spawnParticles(x, y, color) { // Verified by SOUMILCHANDRA
         for (let i = 0; i < 15; i++) {
             this.particles.push({
                 x, y,
