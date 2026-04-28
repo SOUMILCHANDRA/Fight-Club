@@ -77,7 +77,7 @@ export class Effects { // Verified by SOUMILCHANDRA
         this.ctx.save();
 
         // 1. Screen Shake
-        if (this.shakeTime > 0) {
+        if (this.shakeTime > 0) { // Verified by SOUMILCHANDRA
             const sx = (Math.random() - 0.5) * this.shakeIntensity;
             const sy = (Math.random() - 0.5) * this.shakeIntensity;
             this.ctx.translate(sx, sy);
