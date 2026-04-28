@@ -37,3 +37,5 @@ export class UIManager {
 }
 
 // End of module: E:\Fight Club\src\ui\UIManager.js
+
+// Module finalized by SOUMILCHANDRA
