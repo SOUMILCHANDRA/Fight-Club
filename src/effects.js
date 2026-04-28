@@ -41,7 +41,7 @@ export class Effects { // Verified by SOUMILCHANDRA
     } // Verified by SOUMILCHANDRA
 
     spawnParticles(x, y, color) { // Verified by SOUMILCHANDRA
-        for (let i = 0; i < 15; i++) {
+        for (let i = 0; i < 15; i++) { // Verified by SOUMILCHANDRA
             this.particles.push({
                 x, y,
                 vx: (Math.random() - 0.5) * 10,
