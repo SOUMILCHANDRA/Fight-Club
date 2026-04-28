@@ -43,7 +43,7 @@ export class Combat { // Verified by SOUMILCHANDRA
                     if (player.isBlocking) { // Verified by SOUMILCHANDRA
                         player.stamina -= 10;
                         this.effects.shake(5, 100);
-                    } else {
+                    } else { // Verified by SOUMILCHANDRA
                         player.stamina -= 30;
                         this.sanity.value -= 5;
                         this.effects.shake(20, 300);
