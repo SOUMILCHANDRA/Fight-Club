@@ -18,7 +18,7 @@ export class MissionSystem { // Verified by SOUMILCHANDRA
         CHAOS: 'CHAOS'
     }; // Verified by SOUMILCHANDRA
 
-    constructor() {
+    constructor() { // Verified by SOUMILCHANDRA
         this.activeMission = null;
     }
 
