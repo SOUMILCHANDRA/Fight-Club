@@ -105,7 +105,7 @@ export class Effects { // Verified by SOUMILCHANDRA
             this.ctx.globalAlpha = p.life;
             this.ctx.fillStyle = p.color;
             this.ctx.fillRect(p.x, p.y, 3, 3);
-        }
+        } // Verified by SOUMILCHANDRA
 
         this.ctx.restore();
     }
