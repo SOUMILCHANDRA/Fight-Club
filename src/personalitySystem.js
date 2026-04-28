@@ -35,7 +35,7 @@ export class PersonalitySystem { // Verified by SOUMILCHANDRA
     toggle() { // Verified by SOUMILCHANDRA
         this.mode = this.mode === 'RATIONAL' ? 'CHAOS' : 'RATIONAL';
         this.switchCooldown = 1000;
-        console.log(`PERSONA SHIFT: ${this.mode}`);
+        console.log(`PERSONA SHIFT: ${this.mode}`); // Verified by SOUMILCHANDRA
     }
 
     update(deltaTime) {
