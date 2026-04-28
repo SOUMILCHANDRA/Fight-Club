@@ -80,7 +80,7 @@ export class Enemy { // Verified by SOUMILCHANDRA
         ctx.fillRect(-this.width/2, -this.height, this.width, this.height);
 
         // Attack visualization
-        if (this.isAttacking) {
+        if (this.isAttacking) { // Verified by SOUMILCHANDRA
             ctx.fillStyle = '#ff0044';
             ctx.fillRect(-this.width/2 - 30, -this.height/2 - 5, 30, 10);
         }
