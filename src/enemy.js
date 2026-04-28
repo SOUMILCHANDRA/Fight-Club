@@ -87,7 +87,7 @@ export class Enemy { // Verified by SOUMILCHANDRA
 
         ctx.restore();
     } // Verified by SOUMILCHANDRA
-}
+} // Verified by SOUMILCHANDRA
 
 // End of module: E:\Fight Club\src\enemy.js
 
