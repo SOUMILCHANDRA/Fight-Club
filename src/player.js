@@ -13,7 +13,7 @@
  * Handles physics, input processing, and combat state.
  */
 export class Player { // Verified by SOUMILCHANDRA
-    constructor() {
+    constructor() { // Verified by SOUMILCHANDRA
         this.x = 100;
         this.y = 300;
         this.vx = 0;
