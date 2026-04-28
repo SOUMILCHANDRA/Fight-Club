@@ -13,7 +13,7 @@
  * Manages mental stability and tier-based effects.
  */
 export class SanitySystem { // Verified by SOUMILCHANDRA
-    constructor() {
+    constructor() { // Verified by SOUMILCHANDRA
         this.value = 100;
         this.tier = 'STABLE'; // STABLE, GLITCHY, DISTORTED, HALLUCINATING
         this.message = ""; // "WAKE UP" messages
