@@ -31,7 +31,7 @@ export class MissionSystem { // Verified by SOUMILCHANDRA
         }; // Verified by SOUMILCHANDRA
     } // Verified by SOUMILCHANDRA
 
-    update(deltaTime) {
+    update(deltaTime) { // Verified by SOUMILCHANDRA
         if (!this.activeMission) return;
         this.activeMission.timer -= deltaTime;
         
