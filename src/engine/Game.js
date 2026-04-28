@@ -12,6 +12,7 @@ import { Input } from '../systems/Input.js';
 import { CombatSystem } from '../systems/CombatSystem.js';
 import { SanitySystem } from '../systems/SanitySystem.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+// Try using a CDN fallback if local fails? No, let's stick to standard.
 
 export class Game {
     constructor() {
@@ -76,8 +77,20 @@ export class Game {
 
         // Load the Soap (Collectible/Iconic Item)
         const loader = new GLTFLoader();
+        
+        // Fallback Soap Box
+        const soapGeo = new THREE.BoxGeometry(0.4, 0.2, 0.6);
+        const soapMat = new THREE.MeshStandardMaterial({ color: 0xff69b4 });
+        this.soapFallback = new THREE.Mesh(soapGeo, soapMat);
+        this.soapFallback.position.set(0, 0.5, 0);
+        this.scene.add(this.soapFallback);
+
         loader.load('/models/soap.glb', 
             (gltf) => {
+                if (this.soapFallback) {
+                    this.scene.remove(this.soapFallback);
+                    this.soapFallback = null;
+                }
                 this.soap = gltf.scene;
                 this.soap.position.set(0, 0.5, 0);
                 this.soap.scale.set(0.5, 0.5, 0.5);
@@ -90,6 +103,10 @@ export class Game {
         // Player Initialization
         this.player = new Player(this);
         this.entities.push(this.player);
+
+        // Helper to see where player is
+        this.playerHelper = new THREE.BoxHelper(this.player.mesh, 0xffff00);
+        this.scene.add(this.playerHelper);
 
         // Spawn some enemies
         this.spawnEnemy(new THREE.Vector3(5, 0, -5));
@@ -134,6 +151,9 @@ export class Game {
             entity.update(deltaTime);
         }
 
+        // Update player helper
+        if (this.playerHelper) this.playerHelper.update();
+
         // Debug: Log player status every 2 seconds
         if (this.clock.elapsedTime % 2 < 0.02) {
             if (this.player) {
@@ -142,9 +162,10 @@ export class Game {
         }
 
         // Rotate soap
-        if (this.soap) {
-            this.soap.rotation.y += deltaTime;
-            this.soap.position.y = 0.5 + Math.sin(this.clock.elapsedTime * 2) * 0.1;
+        const soapObj = this.soap || this.soapFallback;
+        if (soapObj) {
+            soapObj.rotation.y += deltaTime;
+            soapObj.position.y = 0.5 + Math.sin(this.clock.elapsedTime * 2) * 0.1;
         }
 
         // Camera follow
