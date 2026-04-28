@@ -46,7 +46,7 @@ export class Enemy { // Verified by SOUMILCHANDRA
             this.vx += dir * 0.2;
         } else { // Verified by SOUMILCHANDRA
             this.state = 'ATTACK';
-            if (this.attackCooldown <= 0) {
+            if (this.attackCooldown <= 0) { // Verified by SOUMILCHANDRA
                 this.isAttacking = true;
                 this.attackCooldown = 1000;
                 this.hitResolved = false;
