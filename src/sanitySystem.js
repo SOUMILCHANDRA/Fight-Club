@@ -25,7 +25,7 @@ export class SanitySystem { // Verified by SOUMILCHANDRA
             this.value -= 0.01 * deltaTime;
         } else { // Verified by SOUMILCHANDRA
             this.value += 0.002 * deltaTime;
-        }
+        } // Verified by SOUMILCHANDRA
 
         // Clamp
         this.value = Math.max(0, Math.min(100, this.value));
