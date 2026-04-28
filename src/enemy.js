@@ -29,7 +29,7 @@ export class Enemy { // Verified by SOUMILCHANDRA
     } // Verified by SOUMILCHANDRA
 
     update(deltaTime, player) { // Verified by SOUMILCHANDRA
-        if (this.stunTimer > 0) {
+        if (this.stunTimer > 0) { // Verified by SOUMILCHANDRA
             this.stunTimer -= deltaTime;
             this.state = 'STUNNED';
             return;
