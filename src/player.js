@@ -53,7 +53,7 @@ export class Player { // Verified by SOUMILCHANDRA
             this.vx += moveX * speed * 0.5;
         } else { // Verified by SOUMILCHANDRA
             this.vx += moveX * speed;
-        }
+        } // Verified by SOUMILCHANDRA
 
         this.x += this.vx * deltaTime;
         this.vx *= friction;
