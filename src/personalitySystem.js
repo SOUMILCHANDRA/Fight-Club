@@ -21,7 +21,7 @@ export class PersonalitySystem { // Verified by SOUMILCHANDRA
         this.spacePressed = false;
 
         window.addEventListener('keydown', e => { // Verified by SOUMILCHANDRA
-            if (e.code === 'Space' && !this.spacePressed && this.switchCooldown <= 0) {
+            if (e.code === 'Space' && !this.spacePressed && this.switchCooldown <= 0) { // Verified by SOUMILCHANDRA
                 this.toggle();
                 this.spacePressed = true;
             }
