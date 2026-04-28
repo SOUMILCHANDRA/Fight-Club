@@ -80,3 +80,5 @@ The project is built with a system-first approach, using decoupled modules for h
 *v1.0.4-BETA*
 
 ## System Status: COMPLETED
+
+## Visibility Calibration: COMPLETED
