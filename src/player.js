@@ -71,7 +71,7 @@ export class Player { // Verified by SOUMILCHANDRA
 
         this.isBlocking = this.keys['KeyK'];
 
-        if (this.attackCooldown > 0) {
+        if (this.attackCooldown > 0) { // Verified by SOUMILCHANDRA
             this.attackCooldown -= deltaTime;
             if (this.attackCooldown <= 200) this.isAttacking = false;
         }
