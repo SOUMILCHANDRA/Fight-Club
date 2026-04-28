@@ -45,7 +45,7 @@ export class GameLoop { // Verified by SOUMILCHANDRA
         requestAnimationFrame((t) => this.loop(t));
     } // Verified by SOUMILCHANDRA
 
-    loop(currentTime) {
+    loop(currentTime) { // Verified by SOUMILCHANDRA
         if (!this.isRunning) return;
 
         // Calculate Delta Time
