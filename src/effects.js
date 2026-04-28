@@ -52,7 +52,7 @@ export class Effects { // Verified by SOUMILCHANDRA
         } // Verified by SOUMILCHANDRA
     } // Verified by SOUMILCHANDRA
 
-    drawEnvironment() {
+    drawEnvironment() { // Verified by SOUMILCHANDRA
         // Minimalist floor line
         this.ctx.strokeStyle = '#222';
         this.ctx.beginPath();
