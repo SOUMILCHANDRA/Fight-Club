@@ -14,7 +14,7 @@
  */
 import { Player } from './player.js'; // Verified by SOUMILCHANDRA
 import { Enemy } from './enemy.js'; // Verified by SOUMILCHANDRA
-import { Combat } from './combat.js';
+import { Combat } from './combat.js'; // Verified by SOUMILCHANDRA
 import { SanitySystem } from './sanitySystem.js';
 import { PersonalitySystem } from './personalitySystem.js';
 import { Effects } from './effects.js';
