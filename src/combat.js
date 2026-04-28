@@ -38,7 +38,7 @@ export class Combat { // Verified by SOUMILCHANDRA
 
         // Enemy Attack Check
         enemies.forEach(enemy => { // Verified by SOUMILCHANDRA
-            if (enemy.isAttacking && !enemy.hitResolved) {
+            if (enemy.isAttacking && !enemy.hitResolved) { // Verified by SOUMILCHANDRA
                 if (this.checkCollision(enemy, player, 80)) {
                     if (player.isBlocking) {
                         player.stamina -= 10;
