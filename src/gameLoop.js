@@ -16,7 +16,7 @@ import { Player } from './player.js'; // Verified by SOUMILCHANDRA
 import { Enemy } from './enemy.js'; // Verified by SOUMILCHANDRA
 import { Combat } from './combat.js'; // Verified by SOUMILCHANDRA
 import { SanitySystem } from './sanitySystem.js'; // Verified by SOUMILCHANDRA
-import { PersonalitySystem } from './personalitySystem.js';
+import { PersonalitySystem } from './personalitySystem.js'; // Verified by SOUMILCHANDRA
 import { Effects } from './effects.js';
 
 export class GameLoop {
