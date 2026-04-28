@@ -61,7 +61,7 @@ export class Effects { // Verified by SOUMILCHANDRA
         this.ctx.stroke();
     } // Verified by SOUMILCHANDRA
 
-    render(deltaTime, tier) {
+    render(deltaTime, tier) { // Verified by SOUMILCHANDRA
         // 0. Vignette (Sanity-based)
         if (tier !== 'STABLE') {
             const grad = this.ctx.createRadialGradient(
