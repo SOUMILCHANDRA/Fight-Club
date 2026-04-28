@@ -28,7 +28,7 @@ export class MissionSystem { // Verified by SOUMILCHANDRA
             timer: type === 'STEALTH' ? 60000 : 30000,
             targets: 5,
             progress: 0
-        };
+        }; // Verified by SOUMILCHANDRA
     }
 
     update(deltaTime) {
