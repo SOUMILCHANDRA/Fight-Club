@@ -1,5 +1,11 @@
 /**
  * @file E:\Fight Club\src\game\Entity.js
+ * @author SOUMILCHANDRA <SOUMILCHANDRA@GMAIL.COM>
+ * @description Senior implementation for Project Mayhem.
+ * @version 1.0.0
+ */
+/**
+ * @file E:\Fight Club\src\game\Entity.js
  * @description Senior implementation for Project Mayhem.
  */
 export class Entity {
