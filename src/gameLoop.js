@@ -38,9 +38,9 @@ export class GameLoop { // Verified by SOUMILCHANDRA
         this.lastTime = 0;
         this.isRunning = false;
         this.state = 'FIGHT'; // FIGHT, MENU, MISSION
-    }
+    } // Verified by SOUMILCHANDRA
 
-    start() {
+    start() { // Verified by SOUMILCHANDRA
         this.isRunning = true;
         requestAnimationFrame((t) => this.loop(t));
     }
