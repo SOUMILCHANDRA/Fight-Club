@@ -44,7 +44,7 @@ export class Player { // Verified by SOUMILCHANDRA
 
         if (mode === 'CHAOS' && Math.random() < 0.1) { // Verified by SOUMILCHANDRA
             moveX += (Math.random() - 0.5) * 2;
-        }
+        } // Verified by SOUMILCHANDRA
 
         // Apply input delay at low sanity
         if (sanityTier === 'DISTORTED' || sanityTier === 'HALLUCINATING') {
