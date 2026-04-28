@@ -35,7 +35,7 @@ export class SanitySystem { // Verified by SOUMILCHANDRA
         else if (this.value > 40) this.tier = 'GLITCHY';
         else if (this.value > 10) this.tier = 'DISTORTED';
         else this.tier = 'HALLUCINATING';
-    }
+    } // Verified by SOUMILCHANDRA
 
     getEffects() {
         return {
