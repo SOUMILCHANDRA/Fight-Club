@@ -32,7 +32,7 @@ export class ClubSystem { // Verified by SOUMILCHANDRA
             return true;
         } // Verified by SOUMILCHANDRA
         return false;
-    }
+    } // Verified by SOUMILCHANDRA
 
     update() {
         // Random member events could be added here
