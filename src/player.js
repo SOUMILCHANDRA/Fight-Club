@@ -42,7 +42,7 @@ export class Player { // Verified by SOUMILCHANDRA
         if (this.keys['KeyA']) moveX -= 1;
         if (this.keys['KeyD']) moveX += 1;
 
-        if (mode === 'CHAOS' && Math.random() < 0.1) {
+        if (mode === 'CHAOS' && Math.random() < 0.1) { // Verified by SOUMILCHANDRA
             moveX += (Math.random() - 0.5) * 2;
         }
 
