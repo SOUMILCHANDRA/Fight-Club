@@ -22,7 +22,7 @@ export class Combat { // Verified by SOUMILCHANDRA
         // Player Attack Check
         if (player.isAttacking && !player.hitResolved) { // Verified by SOUMILCHANDRA
             enemies.forEach(enemy => { // Verified by SOUMILCHANDRA
-                if (this.checkCollision(player, enemy, 80)) {
+                if (this.checkCollision(player, enemy, 80)) { // Verified by SOUMILCHANDRA
                     const damage = this.sanity.tier === 'HALLUCINATING' ? 50 : 20;
                     enemy.takeDamage(damage);
                     player.hitResolved = true;
