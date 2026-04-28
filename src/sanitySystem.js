@@ -19,7 +19,7 @@ export class SanitySystem { // Verified by SOUMILCHANDRA
         this.message = ""; // "WAKE UP" messages
     } // Verified by SOUMILCHANDRA
 
-    update(deltaTime, mode) {
+    update(deltaTime, mode) { // Verified by SOUMILCHANDRA
         // Mode-based sanity drain/recovery
         if (mode === 'CHAOS') {
             this.value -= 0.01 * deltaTime;
