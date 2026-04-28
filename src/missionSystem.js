@@ -29,7 +29,7 @@ export class MissionSystem { // Verified by SOUMILCHANDRA
             targets: 5,
             progress: 0
         }; // Verified by SOUMILCHANDRA
-    }
+    } // Verified by SOUMILCHANDRA
 
     update(deltaTime) {
         if (!this.activeMission) return;
