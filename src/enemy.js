@@ -83,7 +83,7 @@ export class Enemy { // Verified by SOUMILCHANDRA
         if (this.isAttacking) { // Verified by SOUMILCHANDRA
             ctx.fillStyle = '#ff0044';
             ctx.fillRect(-this.width/2 - 30, -this.height/2 - 5, 30, 10);
-        }
+        } // Verified by SOUMILCHANDRA
 
         ctx.restore();
     }
