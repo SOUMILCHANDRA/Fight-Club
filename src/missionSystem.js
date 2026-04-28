@@ -13,7 +13,7 @@
  * Handles active missions and their objectives.
  */
 export class MissionSystem { // Verified by SOUMILCHANDRA
-    static TYPES = {
+    static TYPES = { // Verified by SOUMILCHANDRA
         STEALTH: 'STEALTH',
         CHAOS: 'CHAOS'
     };
