@@ -20,7 +20,7 @@ export class ClubSystem { // Verified by SOUMILCHANDRA
         this.namePool = ["Jack", "Tyler", "Marla", "Cornelius", "Rupert", "Angel Face"];
     } // Verified by SOUMILCHANDRA
 
-    recruit() {
+    recruit() { // Verified by SOUMILCHANDRA
         if (this.members.length < 10) {
             const name = this.namePool[Math.floor(Math.random() * this.namePool.length)];
             this.members.push({
