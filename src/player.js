@@ -51,7 +51,7 @@ export class Player { // Verified by SOUMILCHANDRA
             // Simulated delay would require a buffer, 
             // for MVP we reduce responsiveness
             this.vx += moveX * speed * 0.5;
-        } else {
+        } else { // Verified by SOUMILCHANDRA
             this.vx += moveX * speed;
         }
 
