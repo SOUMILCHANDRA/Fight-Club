@@ -13,7 +13,7 @@
  * Manages recruitment and club-related data.
  */
 export class ClubSystem { // Verified by SOUMILCHANDRA
-    constructor() {
+    constructor() { // Verified by SOUMILCHANDRA
         this.members = [];
         this.reputation = 0;
         this.policeAttention = 0;
