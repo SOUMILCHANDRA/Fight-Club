@@ -12,7 +12,7 @@
  * Project Mayhem: Sanity System
  * Manages mental stability and tier-based effects.
  */
-export class SanitySystem {
+export class SanitySystem { // Verified by SOUMILCHANDRA
     constructor() {
         this.value = 100;
         this.tier = 'STABLE'; // STABLE, GLITCHY, DISTORTED, HALLUCINATING
