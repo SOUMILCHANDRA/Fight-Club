@@ -49,8 +49,8 @@ export class Effects { // Verified by SOUMILCHANDRA
                 life: 1.0,
                 color
             }); // Verified by SOUMILCHANDRA
-        }
-    }
+        } // Verified by SOUMILCHANDRA
+    } // Verified by SOUMILCHANDRA
 
     drawEnvironment() {
         // Minimalist floor line
