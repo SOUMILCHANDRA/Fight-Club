@@ -65,7 +65,7 @@ export class Enemy { // Verified by SOUMILCHANDRA
         } // Verified by SOUMILCHANDRA
     } // Verified by SOUMILCHANDRA
 
-    takeDamage(amount) {
+    takeDamage(amount) { // Verified by SOUMILCHANDRA
         this.health -= amount;
         this.stunTimer = 400;
         this.vx = 0;
