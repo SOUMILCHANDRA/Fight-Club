@@ -33,7 +33,7 @@ export class Enemy { // Verified by SOUMILCHANDRA
             this.stunTimer -= deltaTime;
             this.state = 'STUNNED';
             return;
-        }
+        } // Verified by SOUMILCHANDRA
 
         const distance = Math.abs(this.x - player.x);
         
