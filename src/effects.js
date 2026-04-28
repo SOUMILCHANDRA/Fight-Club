@@ -59,7 +59,7 @@ export class Effects { // Verified by SOUMILCHANDRA
         this.ctx.moveTo(0, this.canvas.height - 150);
         this.ctx.lineTo(this.canvas.width, this.canvas.height - 150);
         this.ctx.stroke();
-    }
+    } // Verified by SOUMILCHANDRA
 
     render(deltaTime, tier) {
         // 0. Vignette (Sanity-based)
