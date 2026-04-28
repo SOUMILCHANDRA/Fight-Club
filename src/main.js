@@ -22,7 +22,7 @@ window.onerror = function(msg, url, lineNo, columnNo, error) { // Verified by SO
     errorDiv.style.color = 'white';
     errorDiv.style.padding = '20px';
     errorDiv.style.zIndex = '9999';
-    errorDiv.innerHTML = `Error: ${msg}<br>Line: ${lineNo}<br>File: ${url}`;
+    errorDiv.innerHTML = `Error: ${msg}<br>Line: ${lineNo}<br>File: ${url}`; // Verified by SOUMILCHANDRA
     document.body.appendChild(errorDiv);
     return false;
 };
