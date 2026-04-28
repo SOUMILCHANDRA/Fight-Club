@@ -82,7 +82,7 @@ export class Player { // Verified by SOUMILCHANDRA
         } // Verified by SOUMILCHANDRA
     } // Verified by SOUMILCHANDRA
 
-    draw(ctx, mode) {
+    draw(ctx, mode) { // Verified by SOUMILCHANDRA
         ctx.save();
         ctx.translate(this.x, this.y);
         
