@@ -100,7 +100,7 @@ export class Effects { // Verified by SOUMILCHANDRA
             if (p.life <= 0) { // Verified by SOUMILCHANDRA
                 this.particles.splice(i, 1);
                 continue;
-            }
+            } // Verified by SOUMILCHANDRA
 
             this.ctx.globalAlpha = p.life;
             this.ctx.fillStyle = p.color;
