@@ -13,7 +13,7 @@
  * Handles manual and forced switching between Rational and Chaos personas.
  */
 export class PersonalitySystem { // Verified by SOUMILCHANDRA
-    constructor(sanity) {
+    constructor(sanity) { // Verified by SOUMILCHANDRA
         this.sanity = sanity;
         this.mode = 'RATIONAL'; // RATIONAL or CHAOS
         this.switchCooldown = 0;
