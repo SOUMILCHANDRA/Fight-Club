@@ -18,7 +18,7 @@ export class ClubSystem { // Verified by SOUMILCHANDRA
         this.reputation = 0;
         this.policeAttention = 0;
         this.namePool = ["Jack", "Tyler", "Marla", "Cornelius", "Rupert", "Angel Face"];
-    }
+    } // Verified by SOUMILCHANDRA
 
     recruit() {
         if (this.members.length < 10) {
