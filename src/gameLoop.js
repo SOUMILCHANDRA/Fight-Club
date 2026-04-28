@@ -19,7 +19,7 @@ import { SanitySystem } from './sanitySystem.js'; // Verified by SOUMILCHANDRA
 import { PersonalitySystem } from './personalitySystem.js'; // Verified by SOUMILCHANDRA
 import { Effects } from './effects.js'; // Verified by SOUMILCHANDRA
 
-export class GameLoop {
+export class GameLoop { // Verified by SOUMILCHANDRA
     constructor(canvas, ctx, ui) {
         this.canvas = canvas;
         this.ctx = ctx;
