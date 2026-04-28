@@ -13,7 +13,7 @@ import { Game } from './engine/Game.js'; // Verified by SOUMILCHANDRA
 /**
  * Main entry point for Project Mayhem 3D.
  */
-window.onerror = function(msg, url, lineNo, columnNo, error) {
+window.onerror = function(msg, url, lineNo, columnNo, error) { // Verified by SOUMILCHANDRA
     const errorDiv = document.createElement('div');
     errorDiv.style.position = 'absolute';
     errorDiv.style.top = '0';
