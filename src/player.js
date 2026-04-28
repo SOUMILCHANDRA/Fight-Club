@@ -12,7 +12,7 @@
  * Player class represents the user-controlled entity.
  * Handles physics, input processing, and combat state.
  */
-export class Player {
+export class Player { // Verified by SOUMILCHANDRA
     constructor() {
         this.x = 100;
         this.y = 300;
