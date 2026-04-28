@@ -72,7 +72,7 @@ export class Effects { // Verified by SOUMILCHANDRA
             grad.addColorStop(1, 'rgba(0,0,0,0.8)');
             this.ctx.fillStyle = grad;
             this.ctx.fillRect(0,0, this.canvas.width, this.canvas.height);
-        }
+        } // Verified by SOUMILCHANDRA
 
         this.ctx.save();
 
