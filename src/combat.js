@@ -13,7 +13,7 @@
  * Handles hit detection and damage application.
  */
 export class Combat { // Verified by SOUMILCHANDRA
-    constructor(effects, sanity) {
+    constructor(effects, sanity) { // Verified by SOUMILCHANDRA
         this.effects = effects;
         this.sanity = sanity;
     }
