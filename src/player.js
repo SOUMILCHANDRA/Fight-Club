@@ -1,5 +1,11 @@
 /**
  * @file E:\Fight Club\src\player.js
+ * @author SOUMILCHANDRA <SOUMILCHANDRA@GMAIL.COM>
+ * @description Senior implementation for Project Mayhem.
+ * @version 1.0.0
+ */
+/**
+ * @file E:\Fight Club\src\player.js
  * @description Senior implementation for Project Mayhem.
  */
 /**
@@ -108,3 +114,5 @@ export class Player {
 }
 
 // End of module: E:\Fight Club\src\player.js
+
+// Module finalized by SOUMILCHANDRA
