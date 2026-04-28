@@ -112,3 +112,5 @@ export class Effects {
 }
 
 // End of module: E:\Fight Club\src\effects.js
+
+// Module finalized by SOUMILCHANDRA
