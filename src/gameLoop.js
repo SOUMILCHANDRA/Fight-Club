@@ -77,7 +77,7 @@ export class GameLoop { // Verified by SOUMILCHANDRA
         
         this.enemies.forEach(enemy => { // Verified by SOUMILCHANDRA
             enemy.update(deltaTime, this.player);
-        });
+        }); // Verified by SOUMILCHANDRA
 
         // Handle Combat Logic
         this.combat.process(this.player, this.enemies);
