@@ -97,7 +97,7 @@ export class Player { // Verified by SOUMILCHANDRA
         ctx.fillRect(-this.width/2, -this.height, this.width, this.height);
 
         // Attack Visualization
-        if (this.isAttacking) {
+        if (this.isAttacking) { // Verified by SOUMILCHANDRA
             ctx.fillStyle = '#fff';
             ctx.fillRect(this.width/2, -this.height/2 - 5, 30, 10);
         }
