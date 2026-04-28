@@ -72,3 +72,5 @@ export class UI { // Verified by SOUMILCHANDRA
 // End of module: E:\Fight Club\src\ui.js
 
 // Module finalized by SOUMILCHANDRA
+
+// Module finalized by SOUMILCHANDRA
