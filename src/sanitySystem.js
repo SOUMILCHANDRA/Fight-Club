@@ -1,4 +1,8 @@
 /**
+ * @file E:\Fight Club\src\sanitySystem.js
+ * @description Senior implementation for Project Mayhem.
+ */
+/**
  * Project Mayhem: Sanity System
  * Manages mental stability and tier-based effects.
  */
@@ -35,3 +39,5 @@ export class SanitySystem {
         };
     }
 }
+
+// End of module: E:\Fight Club\src\sanitySystem.js

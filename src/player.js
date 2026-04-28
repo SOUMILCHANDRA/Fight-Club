@@ -1,4 +1,8 @@
 /**
+ * @file E:\Fight Club\src\player.js
+ * @description Senior implementation for Project Mayhem.
+ */
+/**
  * Player class represents the user-controlled entity.
  * Handles physics, input processing, and combat state.
  */
@@ -102,3 +106,5 @@ export class Player {
         ctx.restore();
     }
 }
+
+// End of module: E:\Fight Club\src\player.js

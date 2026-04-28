@@ -1,4 +1,8 @@
 /**
+ * @file E:\Fight Club\src\combat.js
+ * @description Senior implementation for Project Mayhem.
+ */
+/**
  * Project Mayhem: Combat Processor
  * Handles hit detection and damage application.
  */
@@ -51,3 +55,5 @@ export class Combat {
         return dx < range && dy < 100;
     }
 }
+
+// End of module: E:\Fight Club\src\combat.js

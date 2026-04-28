@@ -1,49 +1,29 @@
 /**
- * Project Mayhem: Main Entry Point
- * Bootstraps the game systems and handles initial events.
+ * @file E:\Fight Club\src\main.js
+ * @description Senior implementation for Project Mayhem.
  */
-import { GameLoop } from './gameLoop.js';
-import { UI } from './ui.js';
+import { Game } from './engine/Game.js';
 
-class ProjectMayhem {
-    constructor() {
-        this.canvas = document.getElementById('game-canvas');
-        this.ctx = this.canvas.getContext('2d');
-        
-        // Initialize UI and Game Loop
-        this.ui = new UI();
-        this.gameLoop = new GameLoop(this.canvas, this.ctx, this.ui);
-        
-        this.init();
-    }
+/**
+ * Main entry point for Project Mayhem 3D.
+ */
+window.onerror = function(msg, url, lineNo, columnNo, error) {
+    const errorDiv = document.createElement('div');
+    errorDiv.style.position = 'absolute';
+    errorDiv.style.top = '0';
+    errorDiv.style.left = '0';
+    errorDiv.style.background = 'red';
+    errorDiv.style.color = 'white';
+    errorDiv.style.padding = '20px';
+    errorDiv.style.zIndex = '9999';
+    errorDiv.innerHTML = `Error: ${msg}<br>Line: ${lineNo}<br>File: ${url}`;
+    document.body.appendChild(errorDiv);
+    return false;
+};
 
-    init() {
-        // Handle window resizing
-        this.resize();
-        window.addEventListener('resize', () => this.resize());
-        
-        // Handle Start Button
-        const startBtn = document.getElementById('action-btn');
-        startBtn.addEventListener('click', () => this.handleStart());
-        
-        console.log("PROJECT MAYHEM: SYSTEM INITIALIZED.");
-    }
+document.addEventListener('DOMContentLoaded', () => {
+    const game = new Game();
+    game.init();
+});
 
-    resize() {
-        this.canvas.width = window.innerWidth;
-        this.canvas.height = window.innerHeight;
-    }
-
-    handleStart() {
-        // Hide overlay and start the loop
-        document.getElementById('overlay').classList.remove('active');
-        document.getElementById('overlay').classList.add('hidden');
-        
-        if (!this.gameLoop.isRunning) {
-            this.gameLoop.start();
-        }
-    }
-}
-
-// Bootstrap on load
-window.onload = () => new ProjectMayhem();
+// End of module: E:\Fight Club\src\main.js

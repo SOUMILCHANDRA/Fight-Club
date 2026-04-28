@@ -1,4 +1,8 @@
 /**
+ * @file E:\Fight Club\src\personalitySystem.js
+ * @description Senior implementation for Project Mayhem.
+ */
+/**
  * Project Mayhem: Personality System
  * Handles manual and forced switching between Rational and Chaos personas.
  */
@@ -41,3 +45,5 @@ export class PersonalitySystem {
         }
     }
 }
+
+// End of module: E:\Fight Club\src\personalitySystem.js

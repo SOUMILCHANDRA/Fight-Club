@@ -1,4 +1,8 @@
 /**
+ * @file E:\Fight Club\src\effects.js
+ * @description Senior implementation for Project Mayhem.
+ */
+/**
  * Project Mayhem: Effects Engine
  * Handles screen shakes, particles, and sanity-based distortions.
  */
@@ -100,3 +104,5 @@ export class Effects {
         this.ctx.restore();
     }
 }
+
+// End of module: E:\Fight Club\src\effects.js

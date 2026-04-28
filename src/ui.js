@@ -1,4 +1,8 @@
 /**
+ * @file E:\Fight Club\src\ui.js
+ * @description Senior implementation for Project Mayhem.
+ */
+/**
  * Project Mayhem: UI Manager
  * Handles syncing game state with the text-based HUD.
  */
@@ -52,3 +56,5 @@ export class UI {
         document.getElementById('overlay').style.color = '#ff0044';
     }
 }
+
+// End of module: E:\Fight Club\src\ui.js

@@ -1,4 +1,8 @@
 /**
+ * @file E:\Fight Club\src\missionSystem.js
+ * @description Senior implementation for Project Mayhem.
+ */
+/**
  * Project Mayhem: Mission System
  * Handles active missions and their objectives.
  */
@@ -30,3 +34,5 @@ export class MissionSystem {
         }
     }
 }
+
+// End of module: E:\Fight Club\src\missionSystem.js

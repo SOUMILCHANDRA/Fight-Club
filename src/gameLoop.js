@@ -1,4 +1,8 @@
 /**
+ * @file E:\Fight Club\src\gameLoop.js
+ * @description Senior implementation for Project Mayhem.
+ */
+/**
  * Project Mayhem: Game Loop
  * Handles requestAnimationFrame, delta time, and orchestration of game states.
  */
@@ -91,3 +95,5 @@ export class GameLoop {
         this.effects.render(deltaTime, this.sanity.tier);
     }
 }
+
+// End of module: E:\Fight Club\src\gameLoop.js

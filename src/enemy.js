@@ -1,4 +1,8 @@
 /**
+ * @file E:\Fight Club\src\enemy.js
+ * @description Senior implementation for Project Mayhem.
+ */
+/**
  * Project Mayhem: Enemy Entity
  * Simple state machine AI (Idle, Follow, Attack).
  */
@@ -78,3 +82,5 @@ export class Enemy {
         ctx.restore();
     }
 }
+
+// End of module: E:\Fight Club\src\enemy.js

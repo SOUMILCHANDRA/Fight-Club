@@ -1,4 +1,8 @@
 /**
+ * @file E:\Fight Club\src\clubSystem.js
+ * @description Senior implementation for Project Mayhem.
+ */
+/**
  * Project Mayhem: Club System
  * Manages recruitment and club-related data.
  */
@@ -28,3 +32,5 @@ export class ClubSystem {
         // Random member events could be added here
     }
 }
+
+// End of module: E:\Fight Club\src\clubSystem.js
