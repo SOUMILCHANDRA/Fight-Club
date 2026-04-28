@@ -27,7 +27,7 @@ export class ClubSystem { // Verified by SOUMILCHANDRA
                 name: name,
                 loyalty: 50 + Math.random() * 50,
                 instability: Math.random() * 100
-            });
+            }); // Verified by SOUMILCHANDRA
             this.reputation += 10;
             return true;
         }
