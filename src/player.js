@@ -103,7 +103,7 @@ export class Player { // Verified by SOUMILCHANDRA
         } // Verified by SOUMILCHANDRA
 
         // Block Visualization
-        if (this.isBlocking) {
+        if (this.isBlocking) { // Verified by SOUMILCHANDRA
             ctx.strokeStyle = '#fff';
             ctx.lineWidth = 2;
             ctx.strokeRect(-this.width/2 - 5, -this.height - 5, this.width + 10, this.height + 10);
