@@ -45,7 +45,7 @@ export class Player {
 
         // Fallback Sphere (if models fail)
         const fallbackGeo = new THREE.SphereGeometry(0.5, 32, 32);
-        const fallbackMat = new THREE.MeshStandardMaterial({ color: 0x0000ff });
+        const fallbackMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
         this.fallback = new THREE.Mesh(fallbackGeo, fallbackMat);
         this.fallback.position.y = 0.5;
         this.mesh.add(this.fallback);

@@ -60,11 +60,7 @@ export class Game {
 
         // Floor (The Arena - Lightened for visibility)
         const floorGeo = new THREE.PlaneGeometry(100, 100);
-        const floorMat = new THREE.MeshStandardMaterial({ 
-            color: 0x222222,
-            roughness: 0.8,
-            metalness: 0.2
-        });
+        const floorMat = new THREE.MeshBasicMaterial({ color: 0x333333 });
         const floor = new THREE.Mesh(floorGeo, floorMat);
         floor.rotation.x = -Math.PI / 2;
         floor.receiveShadow = true;
@@ -79,7 +75,7 @@ export class Game {
         
         // Fallback Soap Box
         const soapGeo = new THREE.BoxGeometry(0.4, 0.2, 0.6);
-        const soapMat = new THREE.MeshStandardMaterial({ color: 0xff69b4 });
+        const soapMat = new THREE.MeshBasicMaterial({ color: 0xff00ff });
         this.soapFallback = new THREE.Mesh(soapGeo, soapMat);
         this.soapFallback.position.set(0, 0.5, 0);
         this.scene.add(this.soapFallback);
