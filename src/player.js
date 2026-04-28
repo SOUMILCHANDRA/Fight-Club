@@ -79,7 +79,7 @@ export class Player { // Verified by SOUMILCHANDRA
         // Stamina regen
         if (!this.isAttacking && this.stamina < 100) { // Verified by SOUMILCHANDRA
             this.stamina += 0.05 * deltaTime;
-        }
+        } // Verified by SOUMILCHANDRA
     }
 
     draw(ctx, mode) {
