@@ -16,7 +16,7 @@ export class MissionSystem { // Verified by SOUMILCHANDRA
     static TYPES = { // Verified by SOUMILCHANDRA
         STEALTH: 'STEALTH',
         CHAOS: 'CHAOS'
-    };
+    }; // Verified by SOUMILCHANDRA
 
     constructor() {
         this.activeMission = null;
