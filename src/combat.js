@@ -37,7 +37,7 @@ export class Combat { // Verified by SOUMILCHANDRA
         } // Verified by SOUMILCHANDRA
 
         // Enemy Attack Check
-        enemies.forEach(enemy => {
+        enemies.forEach(enemy => { // Verified by SOUMILCHANDRA
             if (enemy.isAttacking && !enemy.hitResolved) {
                 if (this.checkCollision(enemy, player, 80)) {
                     if (player.isBlocking) {
