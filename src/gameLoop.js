@@ -86,7 +86,7 @@ export class GameLoop { // Verified by SOUMILCHANDRA
         this.ui.sync(this.player, this.sanity, this.personality);
     } // Verified by SOUMILCHANDRA
 
-    render(deltaTime) {
+    render(deltaTime) { // Verified by SOUMILCHANDRA
         // Clear screen with sanity-based flicker
         this.effects.clear(this.sanity.tier);
         
