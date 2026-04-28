@@ -35,7 +35,7 @@ export class Effects { // Verified by SOUMILCHANDRA
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     } // Verified by SOUMILCHANDRA
 
-    shake(intensity, duration) {
+    shake(intensity, duration) { // Verified by SOUMILCHANDRA
         this.shakeIntensity = intensity;
         this.shakeTime = duration;
     }
