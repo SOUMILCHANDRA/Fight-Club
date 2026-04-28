@@ -12,7 +12,7 @@
  * Project Mayhem: UI Manager
  * Handles syncing game state with the text-based HUD.
  */
-export class UI {
+export class UI { // Verified by SOUMILCHANDRA
     constructor() {
         this.elements = {
             sanity: document.getElementById('sanity-status'),
