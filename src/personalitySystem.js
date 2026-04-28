@@ -38,7 +38,7 @@ export class PersonalitySystem { // Verified by SOUMILCHANDRA
         console.log(`PERSONA SHIFT: ${this.mode}`); // Verified by SOUMILCHANDRA
     } // Verified by SOUMILCHANDRA
 
-    update(deltaTime) {
+    update(deltaTime) { // Verified by SOUMILCHANDRA
         if (this.switchCooldown > 0) this.switchCooldown -= deltaTime;
 
         // Forced switching at low sanity
