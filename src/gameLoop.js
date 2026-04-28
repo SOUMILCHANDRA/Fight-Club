@@ -20,7 +20,7 @@ import { PersonalitySystem } from './personalitySystem.js'; // Verified by SOUMI
 import { Effects } from './effects.js'; // Verified by SOUMILCHANDRA
 
 export class GameLoop { // Verified by SOUMILCHANDRA
-    constructor(canvas, ctx, ui) {
+    constructor(canvas, ctx, ui) { // Verified by SOUMILCHANDRA
         this.canvas = canvas;
         this.ctx = ctx;
         this.ui = ui;
