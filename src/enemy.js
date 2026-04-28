@@ -44,7 +44,7 @@ export class Enemy { // Verified by SOUMILCHANDRA
             this.state = 'FOLLOW';
             const dir = player.x < this.x ? -1 : 1;
             this.vx += dir * 0.2;
-        } else {
+        } else { // Verified by SOUMILCHANDRA
             this.state = 'ATTACK';
             if (this.attackCooldown <= 0) {
                 this.isAttacking = true;
