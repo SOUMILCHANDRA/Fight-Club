@@ -109,7 +109,7 @@ export class Effects { // Verified by SOUMILCHANDRA
 
         this.ctx.restore();
     } // Verified by SOUMILCHANDRA
-}
+} // Verified by SOUMILCHANDRA
 
 // End of module: E:\Fight Club\src\effects.js
 
