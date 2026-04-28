@@ -20,7 +20,7 @@ export class Effects { // Verified by SOUMILCHANDRA
         this.shakeIntensity = 0;
         this.particles = [];
         this.labels = [];
-    }
+    } // Verified by SOUMILCHANDRA
 
     clear(tier) {
         // Base background
