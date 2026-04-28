@@ -27,10 +27,10 @@ window.onerror = function(msg, url, lineNo, columnNo, error) { // Verified by SO
     return false;
 }; // Verified by SOUMILCHANDRA
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => { // Verified by SOUMILCHANDRA
     const game = new Game();
     game.init();
-});
+}); // Verified by SOUMILCHANDRA
 
 // End of module: E:\Fight Club\src\main.js
 
