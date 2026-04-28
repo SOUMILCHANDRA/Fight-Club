@@ -34,7 +34,7 @@ export class ClubSystem { // Verified by SOUMILCHANDRA
         return false;
     } // Verified by SOUMILCHANDRA
 
-    update() {
+    update() { // Verified by SOUMILCHANDRA
         // Random member events could be added here
     }
 }
