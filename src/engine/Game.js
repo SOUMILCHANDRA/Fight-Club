@@ -36,14 +36,13 @@ export class Game {
     init() {
         // Scene Setup
         this.scene.background = new THREE.Color(0x0a0a0a);
-        this.scene.fog = new THREE.FogExp2(0x0a0a0a, 0.05);
-
+        
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.shadowMap.enabled = true;
 
         // Lighting (Moody & High Contrast)
-        const ambientLight = new THREE.AmbientLight(0x111111, 0.5);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
         this.scene.add(ambientLight);
 
         const spotLight = new THREE.SpotLight(0xffffff, 5);
