@@ -48,7 +48,7 @@ export class Combat { // Verified by SOUMILCHANDRA
                         this.sanity.value -= 5;
                         this.effects.shake(20, 300);
                         this.effects.spawnParticles(player.x, player.y - 40, '#ff0044');
-                    }
+                    } // Verified by SOUMILCHANDRA
                     enemy.hitResolved = true;
                 }
             }
