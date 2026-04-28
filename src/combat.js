@@ -32,7 +32,7 @@ export class Combat { // Verified by SOUMILCHANDRA
                     this.effects.shake(intensity, 200);
                     const pColor = Math.random() > 0.8 ? '#ff0044' : '#fff';
                     this.effects.spawnParticles(enemy.x, enemy.y - 40, pColor);
-                }
+                } // Verified by SOUMILCHANDRA
             });
         }
 
