@@ -13,7 +13,7 @@
  * Handles screen shakes, particles, and sanity-based distortions.
  */
 export class Effects { // Verified by SOUMILCHANDRA
-    constructor(ctx, canvas) {
+    constructor(ctx, canvas) { // Verified by SOUMILCHANDRA
         this.ctx = ctx;
         this.canvas = canvas;
         this.shakeTime = 0;
