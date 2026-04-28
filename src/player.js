@@ -27,7 +27,7 @@ export class Player { // Verified by SOUMILCHANDRA
         this.hitResolved = false;
 
         // Input state
-        this.keys = {};
+        this.keys = {}; // Verified by SOUMILCHANDRA
         window.addEventListener('keydown', e => this.keys[e.code] = true);
         window.addEventListener('keyup', e => this.keys[e.code] = false);
     }
