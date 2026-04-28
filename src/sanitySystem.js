@@ -21,9 +21,9 @@ export class SanitySystem { // Verified by SOUMILCHANDRA
 
     update(deltaTime, mode) { // Verified by SOUMILCHANDRA
         // Mode-based sanity drain/recovery
-        if (mode === 'CHAOS') {
+        if (mode === 'CHAOS') { // Verified by SOUMILCHANDRA
             this.value -= 0.01 * deltaTime;
-        } else {
+        } else { // Verified by SOUMILCHANDRA
             this.value += 0.002 * deltaTime;
         }
 
