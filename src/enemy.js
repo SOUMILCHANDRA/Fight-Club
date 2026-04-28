@@ -69,7 +69,7 @@ export class Enemy { // Verified by SOUMILCHANDRA
         this.health -= amount;
         this.stunTimer = 400;
         this.vx = 0;
-    }
+    } // Verified by SOUMILCHANDRA
 
     draw(ctx) {
         ctx.save();
