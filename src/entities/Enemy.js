@@ -153,3 +153,5 @@ export class Enemy {
 // End of module: E:\Fight Club\src\entities\Enemy.js
 
 // Module finalized by SOUMILCHANDRA
+
+// Module finalized by SOUMILCHANDRA
