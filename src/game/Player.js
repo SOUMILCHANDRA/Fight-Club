@@ -65,3 +65,5 @@ export class Player extends Entity {
 }
 
 // End of module: E:\Fight Club\src\game\Player.js
+
+// Module finalized by SOUMILCHANDRA
