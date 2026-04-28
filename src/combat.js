@@ -52,7 +52,7 @@ export class Combat { // Verified by SOUMILCHANDRA
                     enemy.hitResolved = true;
                 } // Verified by SOUMILCHANDRA
             } // Verified by SOUMILCHANDRA
-        });
+        }); // Verified by SOUMILCHANDRA
     }
 
     checkCollision(attacker, target, range) {
