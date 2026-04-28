@@ -24,7 +24,7 @@ export class PersonalitySystem { // Verified by SOUMILCHANDRA
             if (e.code === 'Space' && !this.spacePressed && this.switchCooldown <= 0) { // Verified by SOUMILCHANDRA
                 this.toggle();
                 this.spacePressed = true;
-            }
+            } // Verified by SOUMILCHANDRA
         });
 
         window.addEventListener('keyup', e => {
