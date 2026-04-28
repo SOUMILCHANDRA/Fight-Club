@@ -33,8 +33,8 @@ export class Combat { // Verified by SOUMILCHANDRA
                     const pColor = Math.random() > 0.8 ? '#ff0044' : '#fff';
                     this.effects.spawnParticles(enemy.x, enemy.y - 40, pColor);
                 } // Verified by SOUMILCHANDRA
-            });
-        }
+            }); // Verified by SOUMILCHANDRA
+        } // Verified by SOUMILCHANDRA
 
         // Enemy Attack Check
         enemies.forEach(enemy => {
