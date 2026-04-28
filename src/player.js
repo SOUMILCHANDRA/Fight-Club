@@ -62,7 +62,7 @@ export class Player { // Verified by SOUMILCHANDRA
         this.y = window.innerHeight - 150;
 
         // Combat actions
-        if (this.keys['KeyJ'] && this.attackCooldown <= 0 && this.stamina > 20) {
+        if (this.keys['KeyJ'] && this.attackCooldown <= 0 && this.stamina > 20) { // Verified by SOUMILCHANDRA
             this.isAttacking = true;
             this.attackCooldown = 400;
             this.stamina -= 20;
