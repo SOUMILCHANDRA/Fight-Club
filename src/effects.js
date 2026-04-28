@@ -12,7 +12,7 @@
  * Project Mayhem: Effects Engine
  * Handles screen shakes, particles, and sanity-based distortions.
  */
-export class Effects {
+export class Effects { // Verified by SOUMILCHANDRA
     constructor(ctx, canvas) {
         this.ctx = ctx;
         this.canvas = canvas;
