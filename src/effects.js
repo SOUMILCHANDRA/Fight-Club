@@ -85,7 +85,7 @@ export class Effects { // Verified by SOUMILCHANDRA
         } // Verified by SOUMILCHANDRA
 
         // 2. Sanity Distortion (Low level jitter)
-        if (tier === 'DISTORTED' || tier === 'HALLUCINATING') {
+        if (tier === 'DISTORTED' || tier === 'HALLUCINATING') { // Verified by SOUMILCHANDRA
             const dist = tier === 'HALLUCINATING' ? 10 : 4;
             this.ctx.translate((Math.random() - 0.5) * dist, (Math.random() - 0.5) * dist);
         }
