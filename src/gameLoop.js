@@ -99,7 +99,7 @@ export class GameLoop { // Verified by SOUMILCHANDRA
 
         // Post-processing
         this.effects.render(deltaTime, this.sanity.tier);
-    }
+    } // Verified by SOUMILCHANDRA
 }
 
 // End of module: E:\Fight Club\src\gameLoop.js
