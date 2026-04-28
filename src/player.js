@@ -74,7 +74,7 @@ export class Player { // Verified by SOUMILCHANDRA
         if (this.attackCooldown > 0) { // Verified by SOUMILCHANDRA
             this.attackCooldown -= deltaTime;
             if (this.attackCooldown <= 200) this.isAttacking = false;
-        }
+        } // Verified by SOUMILCHANDRA
 
         // Stamina regen
         if (!this.isAttacking && this.stamina < 100) {
