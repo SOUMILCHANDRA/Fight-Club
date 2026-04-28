@@ -48,3 +48,5 @@ export class ClubSystem { // Verified by SOUMILCHANDRA
 // End of module: E:\Fight Club\src\clubSystem.js
 
 // Module finalized by SOUMILCHANDRA
+
+// Module finalized by SOUMILCHANDRA
