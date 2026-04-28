@@ -44,7 +44,7 @@ export class SanitySystem { // Verified by SOUMILCHANDRA
             delay: this.value < 40 ? 100 : 0
         }; // Verified by SOUMILCHANDRA
     } // Verified by SOUMILCHANDRA
-}
+} // Verified by SOUMILCHANDRA
 
 // End of module: E:\Fight Club\src\sanitySystem.js
 
