@@ -110,7 +110,7 @@ export class Player { // Verified by SOUMILCHANDRA
         } // Verified by SOUMILCHANDRA
 
         ctx.restore();
-    }
+    } // Verified by SOUMILCHANDRA
 }
 
 // End of module: E:\Fight Club\src\player.js
