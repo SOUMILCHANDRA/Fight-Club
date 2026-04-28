@@ -37,6 +37,19 @@ export class Player {
         this.stamina = 100;
         
         this.game.scene.add(this.mesh);
+        
+        // Add a dedicated light to ensure visibility
+        const light = new THREE.PointLight(0xffffff, 2, 5);
+        light.position.set(0, 2, 0);
+        this.mesh.add(light);
+
+        // Fallback Sphere (if models fail)
+        const fallbackGeo = new THREE.SphereGeometry(0.5, 32, 32);
+        const fallbackMat = new THREE.MeshStandardMaterial({ color: 0x0000ff });
+        this.fallback = new THREE.Mesh(fallbackGeo, fallbackMat);
+        this.fallback.position.y = 0.5;
+        this.mesh.add(this.fallback);
+
         this.loadModels();
     }
 
@@ -63,6 +76,10 @@ export class Player {
             });
 
             if (this.currentMode === name) {
+                if (this.fallback) {
+                    this.mesh.remove(this.fallback);
+                    this.fallback = null;
+                }
                 this.mesh.add(model);
                 this.playAnimation('idle');
             }

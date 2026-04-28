@@ -1,6 +1,4 @@
-node_modules
-dist
+node_modules/
+scratch/
+dist/
 .DS_Store
-*.log
-scratch
-.gemini

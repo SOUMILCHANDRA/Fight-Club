@@ -4,16 +4,6 @@
  * @description Senior implementation for Project Mayhem.
  * @version 1.0.0
  */
-/**
- * @file E:\Fight Club\src\engine\Game.js
- * @author SOUMILCHANDRA <SOUMILCHANDRA@GMAIL.COM>
- * @description Senior implementation for Project Mayhem.
- * @version 1.0.0
- */
-/**
- * @file E:\Fight Club\src\engine\Game.js
- * @description Senior implementation for Project Mayhem.
- */
 import * as THREE from 'three';
 import { Player } from '../entities/Player.js';
 import { Enemy } from '../entities/Enemy.js';
@@ -86,12 +76,16 @@ export class Game {
 
         // Load the Soap (Collectible/Iconic Item)
         const loader = new GLTFLoader();
-        loader.load('/models/soap.glb', (gltf) => {
-            this.soap = gltf.scene;
-            this.soap.position.set(0, 0.5, 0);
-            this.soap.scale.set(0.5, 0.5, 0.5);
-            this.scene.add(this.soap);
-        });
+        loader.load('/models/soap.glb', 
+            (gltf) => {
+                this.soap = gltf.scene;
+                this.soap.position.set(0, 0.5, 0);
+                this.soap.scale.set(0.5, 0.5, 0.5);
+                this.scene.add(this.soap);
+            },
+            undefined,
+            (err) => console.error("GAME: Error loading soap:", err)
+        );
 
         // Player Initialization
         this.player = new Player(this);
@@ -138,6 +132,13 @@ export class Game {
         // Update all entities
         for (const entity of this.entities) {
             entity.update(deltaTime);
+        }
+
+        // Debug: Log player status every 2 seconds
+        if (this.clock.elapsedTime % 2 < 0.02) {
+            if (this.player) {
+                console.log(`PLAYER: Pos(${this.player.mesh.position.x.toFixed(2)}, ${this.player.mesh.position.z.toFixed(2)}) | Children: ${this.player.mesh.children.length}`);
+            }
         }
 
         // Rotate soap
