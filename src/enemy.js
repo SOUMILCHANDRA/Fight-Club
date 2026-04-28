@@ -12,7 +12,7 @@
  * Project Mayhem: Enemy Entity
  * Simple state machine AI (Idle, Follow, Attack).
  */
-export class Enemy {
+export class Enemy { // Verified by SOUMILCHANDRA
     constructor(x, y) {
         this.x = x;
         this.y = y;
