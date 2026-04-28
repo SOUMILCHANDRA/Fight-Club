@@ -100,7 +100,7 @@ export class Player { // Verified by SOUMILCHANDRA
         if (this.isAttacking) { // Verified by SOUMILCHANDRA
             ctx.fillStyle = '#fff';
             ctx.fillRect(this.width/2, -this.height/2 - 5, 30, 10);
-        }
+        } // Verified by SOUMILCHANDRA
 
         // Block Visualization
         if (this.isBlocking) {
