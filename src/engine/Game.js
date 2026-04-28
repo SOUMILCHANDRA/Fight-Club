@@ -22,7 +22,6 @@ export class Game {
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
-        this.renderer.domElement.style.border = '2px solid white';
         document.body.appendChild(this.renderer.domElement);
         
         this.ui = new UIManager();
@@ -46,8 +45,8 @@ export class Game {
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.shadowMap.enabled = true;
 
-        // Lighting (Increased for Debugging)
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        // Lighting (Moody & High Contrast)
+        const ambientLight = new THREE.AmbientLight(0x111111, 0.5);
         this.scene.add(ambientLight);
 
         const spotLight = new THREE.SpotLight(0xffffff, 5);
@@ -87,13 +86,6 @@ export class Game {
             this.soap.scale.set(0.5, 0.5, 0.5);
             this.scene.add(this.soap);
         });
-
-        // Test Cube
-        const testGeo = new THREE.BoxGeometry(2, 2, 2);
-        const testMat = new THREE.MeshStandardMaterial({ color: 0xff0000 });
-        const testCube = new THREE.Mesh(testGeo, testMat);
-        testCube.position.set(0, 1, 0);
-        this.scene.add(testCube);
 
         // Player Initialization
         this.player = new Player(this);
