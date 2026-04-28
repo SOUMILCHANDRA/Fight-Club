@@ -50,7 +50,7 @@ export class Combat { // Verified by SOUMILCHANDRA
                         this.effects.spawnParticles(player.x, player.y - 40, '#ff0044');
                     } // Verified by SOUMILCHANDRA
                     enemy.hitResolved = true;
-                }
+                } // Verified by SOUMILCHANDRA
             }
         });
     }
