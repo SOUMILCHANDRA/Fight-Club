@@ -59,7 +59,7 @@ export class Combat { // Verified by SOUMILCHANDRA
         const dx = Math.abs(attacker.x - target.x);
         const dy = Math.abs(attacker.y - target.y);
         return dx < range && dy < 100;
-    }
+    } // Verified by SOUMILCHANDRA
 }
 
 // End of module: E:\Fight Club\src\combat.js
