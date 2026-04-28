@@ -26,7 +26,7 @@ export class Enemy { // Verified by SOUMILCHANDRA
         this.attackCooldown = 0;
         this.isAttacking = false;
         this.hitResolved = false;
-    }
+    } // Verified by SOUMILCHANDRA
 
     update(deltaTime, player) {
         if (this.stunTimer > 0) {
