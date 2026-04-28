@@ -63,7 +63,7 @@ export class Enemy { // Verified by SOUMILCHANDRA
             this.attackCooldown -= deltaTime;
             if (this.attackCooldown <= 800) this.isAttacking = false;
         } // Verified by SOUMILCHANDRA
-    }
+    } // Verified by SOUMILCHANDRA
 
     takeDamage(amount) {
         this.health -= amount;
