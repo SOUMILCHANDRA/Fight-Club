@@ -37,7 +37,7 @@ export class SanitySystem { // Verified by SOUMILCHANDRA
         else this.tier = 'HALLUCINATING';
     } // Verified by SOUMILCHANDRA
 
-    getEffects() {
+    getEffects() { // Verified by SOUMILCHANDRA
         return {
             distortion: this.value < 40 ? 5 : 0,
             flicker: this.value < 10 ? 0.2 : 0,
