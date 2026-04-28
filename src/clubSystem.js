@@ -37,7 +37,7 @@ export class ClubSystem { // Verified by SOUMILCHANDRA
     update() { // Verified by SOUMILCHANDRA
         // Random member events could be added here
     } // Verified by SOUMILCHANDRA
-}
+} // Verified by SOUMILCHANDRA
 
 // End of module: E:\Fight Club\src\clubSystem.js
 
