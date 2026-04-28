@@ -13,7 +13,7 @@
  * Simple state machine AI (Idle, Follow, Attack).
  */
 export class Enemy { // Verified by SOUMILCHANDRA
-    constructor(x, y) {
+    constructor(x, y) { // Verified by SOUMILCHANDRA
         this.x = x;
         this.y = y;
         this.vx = 0;
