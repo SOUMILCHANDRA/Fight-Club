@@ -17,7 +17,7 @@ export class SanitySystem { // Verified by SOUMILCHANDRA
         this.value = 100;
         this.tier = 'STABLE'; // STABLE, GLITCHY, DISTORTED, HALLUCINATING
         this.message = ""; // "WAKE UP" messages
-    }
+    } // Verified by SOUMILCHANDRA
 
     update(deltaTime, mode) {
         // Mode-based sanity drain/recovery
