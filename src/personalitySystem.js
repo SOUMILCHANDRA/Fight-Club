@@ -50,7 +50,7 @@ export class PersonalitySystem { // Verified by SOUMILCHANDRA
             } // Verified by SOUMILCHANDRA
         } // Verified by SOUMILCHANDRA
     } // Verified by SOUMILCHANDRA
-}
+} // Verified by SOUMILCHANDRA
 
 // End of module: E:\Fight Club\src\personalitySystem.js
 
