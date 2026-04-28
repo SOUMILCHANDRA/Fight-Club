@@ -40,7 +40,7 @@ export class Combat { // Verified by SOUMILCHANDRA
         enemies.forEach(enemy => { // Verified by SOUMILCHANDRA
             if (enemy.isAttacking && !enemy.hitResolved) { // Verified by SOUMILCHANDRA
                 if (this.checkCollision(enemy, player, 80)) { // Verified by SOUMILCHANDRA
-                    if (player.isBlocking) {
+                    if (player.isBlocking) { // Verified by SOUMILCHANDRA
                         player.stamina -= 10;
                         this.effects.shake(5, 100);
                     } else {
