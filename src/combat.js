@@ -16,9 +16,9 @@ export class Combat { // Verified by SOUMILCHANDRA
     constructor(effects, sanity) { // Verified by SOUMILCHANDRA
         this.effects = effects;
         this.sanity = sanity;
-    }
+    } // Verified by SOUMILCHANDRA
 
-    process(player, enemies) {
+    process(player, enemies) { // Verified by SOUMILCHANDRA
         // Player Attack Check
         if (player.isAttacking && !player.hitResolved) {
             enemies.forEach(enemy => {
