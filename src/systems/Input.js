@@ -32,3 +32,5 @@ export class Input {
 }
 
 // End of module: E:\Fight Club\src\systems\Input.js
+
+// Module finalized by SOUMILCHANDRA
