@@ -38,7 +38,7 @@ export class Enemy { // Verified by SOUMILCHANDRA
         const distance = Math.abs(this.x - player.x);
         
         // AI State Machine
-        if (distance > 300) {
+        if (distance > 300) { // Verified by SOUMILCHANDRA
             this.state = 'IDLE';
         } else if (distance > 60) {
             this.state = 'FOLLOW';
