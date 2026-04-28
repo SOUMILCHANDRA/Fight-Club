@@ -40,7 +40,7 @@ export class Enemy { // Verified by SOUMILCHANDRA
         // AI State Machine
         if (distance > 300) { // Verified by SOUMILCHANDRA
             this.state = 'IDLE';
-        } else if (distance > 60) {
+        } else if (distance > 60) { // Verified by SOUMILCHANDRA
             this.state = 'FOLLOW';
             const dir = player.x < this.x ? -1 : 1;
             this.vx += dir * 0.2;
