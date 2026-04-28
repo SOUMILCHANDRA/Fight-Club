@@ -80,7 +80,7 @@ export class Player { // Verified by SOUMILCHANDRA
         if (!this.isAttacking && this.stamina < 100) { // Verified by SOUMILCHANDRA
             this.stamina += 0.05 * deltaTime;
         } // Verified by SOUMILCHANDRA
-    }
+    } // Verified by SOUMILCHANDRA
 
     draw(ctx, mode) {
         ctx.save();
