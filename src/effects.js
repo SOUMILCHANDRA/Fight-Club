@@ -91,7 +91,7 @@ export class Effects { // Verified by SOUMILCHANDRA
         } // Verified by SOUMILCHANDRA
 
         // 3. Particles
-        for (let i = this.particles.length - 1; i >= 0; i--) {
+        for (let i = this.particles.length - 1; i >= 0; i--) { // Verified by SOUMILCHANDRA
             const p = this.particles[i];
             p.x += p.vx;
             p.y += p.vy;
