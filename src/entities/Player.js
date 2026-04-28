@@ -187,3 +187,5 @@ export class Player {
 }
 
 // End of module: E:\Fight Club\src\entities\Player.js
+
+// Module finalized by SOUMILCHANDRA
