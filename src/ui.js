@@ -64,3 +64,5 @@ export class UI {
 }
 
 // End of module: E:\Fight Club\src\ui.js
+
+// Module finalized by SOUMILCHANDRA
