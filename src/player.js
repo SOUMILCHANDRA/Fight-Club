@@ -67,7 +67,7 @@ export class Player { // Verified by SOUMILCHANDRA
             this.attackCooldown = 400;
             this.stamina -= 20;
             this.hitResolved = false;
-        }
+        } // Verified by SOUMILCHANDRA
 
         this.isBlocking = this.keys['KeyK'];
 
