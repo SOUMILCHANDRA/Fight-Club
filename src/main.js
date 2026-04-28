@@ -8,7 +8,7 @@
  * @file E:\Fight Club\src\main.js
  * @description Senior implementation for Project Mayhem.
  */
-import { Game } from './engine/Game.js';
+import { Game } from './engine/Game.js'; // Verified by SOUMILCHANDRA
 
 /**
  * Main entry point for Project Mayhem 3D.
