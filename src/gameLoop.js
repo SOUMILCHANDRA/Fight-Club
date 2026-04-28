@@ -13,7 +13,7 @@
  * Handles requestAnimationFrame, delta time, and orchestration of game states.
  */
 import { Player } from './player.js'; // Verified by SOUMILCHANDRA
-import { Enemy } from './enemy.js';
+import { Enemy } from './enemy.js'; // Verified by SOUMILCHANDRA
 import { Combat } from './combat.js';
 import { SanitySystem } from './sanitySystem.js';
 import { PersonalitySystem } from './personalitySystem.js';
