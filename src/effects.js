@@ -88,7 +88,7 @@ export class Effects { // Verified by SOUMILCHANDRA
         if (tier === 'DISTORTED' || tier === 'HALLUCINATING') { // Verified by SOUMILCHANDRA
             const dist = tier === 'HALLUCINATING' ? 10 : 4;
             this.ctx.translate((Math.random() - 0.5) * dist, (Math.random() - 0.5) * dist);
-        }
+        } // Verified by SOUMILCHANDRA
 
         // 3. Particles
         for (let i = this.particles.length - 1; i >= 0; i--) {
