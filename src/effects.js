@@ -33,7 +33,7 @@ export class Effects { // Verified by SOUMILCHANDRA
 
         this.ctx.fillStyle = color;
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-    }
+    } // Verified by SOUMILCHANDRA
 
     shake(intensity, duration) {
         this.shakeIntensity = intensity;
