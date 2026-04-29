@@ -1,6 +1,7 @@
 using UnityEngine;
 using ProjectMayhem;
 using ProjectMayhem.Systems;
+using ProjectMayhem.Combat;
 
 namespace ProjectMayhem.Player
 {
@@ -59,8 +60,8 @@ namespace ProjectMayhem.Player
             float vertical = Input.GetAxisRaw("Vertical");
             _moveDirection = new Vector3(horizontal, 0, vertical).normalized;
 
-            // Apply Jitter in Chaos mode
-            if (_personality.Mode == PersonaMode.CHAOS && Random.value < 0.1f)
+            // Apply Jitter in Tyler mode
+            if (_personality.Mode == PersonaMode.TYLER && Random.value < 0.1f)
             {
                 _moveDirection += new Vector3(Random.Range(-0.5f, 0.5f), 0, Random.Range(-0.5f, 0.5f));
             }

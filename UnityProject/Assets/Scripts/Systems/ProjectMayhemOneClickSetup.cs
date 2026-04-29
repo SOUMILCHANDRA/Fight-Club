@@ -16,6 +16,14 @@ namespace ProjectMayhem.Systems
     {
         public bool RunSetup = false;
 
+        private void Awake()
+        {
+            if (Application.isPlaying)
+            {
+                PerformFullSetup();
+            }
+        }
+
         private void Update()
         {
             if (RunSetup)
@@ -45,8 +53,13 @@ namespace ProjectMayhem.Systems
             GameObject floor = GameObject.CreatePrimitive(PrimitiveType.Plane);
             floor.name = "ArenaFloor";
             floor.transform.localScale = new Vector3(5, 1, 5);
-            floor.GetComponent<Renderer>().sharedMaterial = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-            floor.GetComponent<Renderer>().sharedMaterial.color = new Color(0.1f, 0.1f, 0.1f);
+            
+            Renderer rend = floor.GetComponent<Renderer>();
+            Material floorMat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+            if (floorMat.shader == null) floorMat.shader = Shader.Find("Standard");
+            
+            floorMat.color = Color.white; // Bright white for visibility
+            rend.sharedMaterial = floorMat;
             
             GameObject lightObj = new GameObject("NoirLight");
             Light light = lightObj.AddComponent<Light>();
@@ -77,6 +90,9 @@ namespace ProjectMayhem.Systems
             Camera mainCam = Camera.main;
             if (mainCam != null)
             {
+                mainCam.transform.position = new Vector3(0, 5, -10);
+                mainCam.transform.rotation = Quaternion.Euler(20, 0, 0);
+                
                 if (!mainCam.GetComponent<CameraFollow>())
                 {
                     var follow = mainCam.gameObject.AddComponent<CameraFollow>();

@@ -1,6 +1,5 @@
 using UnityEngine;
 using ProjectMayhem;
-using ProjectMayhem.Systems;
 
 namespace ProjectMayhem.Systems
 {
@@ -23,7 +22,7 @@ namespace ProjectMayhem.Systems
 
         public void UpdateSanity(float deltaTime, PersonaMode mode)
         {
-            if (mode == PersonaMode.CHAOS)
+            if (mode == PersonaMode.TYLER)
             {
                 Value -= ChaosDrainRate * deltaTime;
             }
