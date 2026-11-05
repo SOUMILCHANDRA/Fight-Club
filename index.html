@@ -2,18 +2,119 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Project Mayhem | 3D</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Project Mayhem | Fight Club 3D</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --bg: #07070a;
+      --fg: #e6e6e6;
+      --rational: #00d4ff;
+      --tyler: #ff1744;
+      --stamina: #e0e0e0;
+      --sanity: #ff0055;
+      --enemy: #ff3344;
+      --font-mono: 'Space Mono', monospace;
+      --font-sans: 'Inter', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
     body { 
       margin: 0; 
       overflow: hidden; 
-      background: #000; 
-      font-family: 'Inter', sans-serif;
+      background: var(--bg); 
+      font-family: var(--font-mono);
+      color: var(--fg);
+      width: 100vw;
+      height: 100vh;
     }
-    canvas { display: block; }
-    
-    /* Premium UI Overlay */
+
+    canvas { display: block; width: 100%; height: 100%; }
+
+    /* LOADING SCREEN */
+    #loading-screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #050508;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    #loading-screen.fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .loading-content {
+      text-align: center;
+      max-width: 520px;
+      padding: 24px;
+    }
+
+    .soap-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #ff2a85, #cc0055);
+      color: #fff;
+      font-family: var(--font-sans);
+      font-weight: 900;
+      letter-spacing: 5px;
+      font-size: 1.4rem;
+      padding: 12px 28px;
+      border-radius: 4px;
+      box-shadow: 0 0 30px rgba(255, 42, 133, 0.4);
+      margin-bottom: 24px;
+      text-transform: uppercase;
+    }
+
+    .loading-quote {
+      font-size: 0.85rem;
+      color: #888;
+      font-style: italic;
+      margin-bottom: 30px;
+      line-height: 1.5;
+    }
+
+    .loading-bar-container {
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    #loading-bar-fill {
+      width: 10%;
+      height: 100%;
+      background: #ff2a85;
+      transition: width 0.3s ease;
+      box-shadow: 0 0 10px #ff2a85;
+    }
+
+    #loading-status {
+      font-size: 0.7rem;
+      letter-spacing: 2px;
+      color: #666;
+      text-transform: uppercase;
+    }
+
+    /* IN-GAME HUD */
     #ui-container {
       position: absolute;
       top: 0;
@@ -24,74 +125,457 @@
       z-index: 10;
     }
 
-    .stat-bar {
+    /* Player Status (Bottom Left) */
+    .player-hud {
       position: absolute;
-      bottom: 40px;
-      left: 40px;
-      width: 300px;
+      bottom: 25px;
+      left: 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .meter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .meter-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.65rem;
+      letter-spacing: 2px;
+      font-weight: 700;
+      color: #aaa;
+      text-transform: uppercase;
+      width: 240px;
+    }
+
+    .stat-bar {
+      width: 240px;
       height: 6px;
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.08);
       border-radius: 3px;
       overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.05);
     }
 
     .stat-fill {
       height: 100%;
       width: 100%;
-      background: #fff;
-      transition: width 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+      transition: width 0.2s cubic-bezier(0.2, 0.9, 0.3, 1);
     }
 
-    #stamina-bar .stat-fill { background: #eee; }
-    #sanity-bar { bottom: 55px; }
-    #sanity-bar .stat-fill { background: #ff3e3e; }
+    #health-bar .stat-fill { background: linear-gradient(90deg, #ff1744, #ff5252); box-shadow: 0 0 8px rgba(255, 23, 68, 0.5); }
+    #stamina-bar .stat-fill { background: linear-gradient(90deg, #dddddd, #ffffff); }
+    #sanity-bar .stat-fill { background: linear-gradient(90deg, #9900ff, #ff0055); box-shadow: 0 0 8px rgba(255, 0, 85, 0.5); }
 
+    /* Enemy HUD (Top Center) */
+    .enemy-hud {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .enemy-title {
+      font-size: 0.75rem;
+      letter-spacing: 3px;
+      font-weight: 700;
+      color: #e0e0e0;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #enemy-health-bar {
+      width: 320px;
+      height: 7px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 3px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 0, 68, 0.2);
+    }
+
+    #enemy-health-bar .stat-fill {
+      background: linear-gradient(90deg, #ff0044, #ff5577);
+      box-shadow: 0 0 10px rgba(255, 0, 68, 0.5);
+    }
+
+    /* Mode / Alter Ego (Top Right) */
     #personality-indicator {
       position: absolute;
-      top: 40px;
-      right: 40px;
+      top: 20px;
+      right: 30px;
       text-align: right;
-      color: #fff;
+    }
+
+    .mode-tag {
+      font-size: 0.65rem;
+      letter-spacing: 3px;
+      color: #777;
       text-transform: uppercase;
-      letter-spacing: 4px;
-      font-size: 12px;
-      opacity: 0.8;
     }
 
     #personality-name {
-      font-size: 24px;
+      font-family: var(--font-sans);
+      font-size: 1.4rem;
       font-weight: 900;
+      letter-spacing: 2px;
       display: block;
-      margin-top: 5px;
+      margin-top: 2px;
+      text-transform: uppercase;
+      transition: color 0.3s ease, text-shadow 0.3s ease;
     }
 
+    #personality-name.mode-rational {
+      color: var(--rational);
+      text-shadow: 0 0 16px rgba(0, 212, 255, 0.4);
+    }
+
+    #personality-name.mode-tyler {
+      color: var(--tyler);
+      text-shadow: 0 0 20px rgba(255, 23, 68, 0.8);
+      animation: tylerPulse 1.5s infinite alternate;
+    }
+
+    @keyframes tylerPulse {
+      0% { transform: scale(1); filter: brightness(1); }
+      100% { transform: scale(1.02); filter: brightness(1.25); }
+    }
+
+    #personality-desc {
+      font-size: 0.6rem;
+      letter-spacing: 1px;
+      color: #666;
+      margin-top: 4px;
+      max-width: 280px;
+    }
+
+    /* Controls HUD (Bottom Right) */
+    .controls-hint {
+      position: absolute;
+      bottom: 25px;
+      right: 30px;
+      text-align: right;
+      font-size: 0.65rem;
+      line-height: 1.6;
+      letter-spacing: 1px;
+      color: #777;
+    }
+
+    .controls-hint kbd {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* Dynamic Toast */
+    #game-toast {
+      position: absolute;
+      top: 80px;
+      left: 50%;
+      transform: translate(-50%, -10px);
+      padding: 8px 20px;
+      background: rgba(10, 10, 15, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+      font-size: 0.72rem;
+      letter-spacing: 2px;
+      font-weight: 700;
+      color: #fff;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+      z-index: 50;
+    }
+
+    /* Glitch / Distortion Overlay */
     .glitch-overlay {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(255, 0, 0, 0.05);
+      background: radial-gradient(circle at center, transparent 40%, rgba(255, 0, 68, 0.25) 100%);
       mix-blend-mode: color-dodge;
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.1s;
+      transition: opacity 0.15s ease-out;
+    }
+
+    /* START MENU & GAME OVER OVERLAYS */
+    .modal-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(5, 5, 8, 0.88);
+      backdrop-filter: blur(8px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 200;
+      transition: opacity 0.4s ease;
+    }
+
+    .modal-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+      display: none;
+    }
+
+    .modal-card {
+      background: rgba(15, 15, 22, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      padding: 40px;
+      max-width: 520px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(255, 23, 68, 0.15);
+    }
+
+    .modal-title {
+      font-family: var(--font-sans);
+      font-size: 2.2rem;
+      font-weight: 900;
+      letter-spacing: 4px;
+      color: #fff;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+    }
+
+    .modal-subtitle {
+      font-size: 0.8rem;
+      color: #888;
+      font-style: italic;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    .controls-table {
+      width: 100%;
+      margin-bottom: 28px;
+      border-collapse: collapse;
+      font-size: 0.75rem;
+      text-align: left;
+    }
+
+    .controls-table td {
+      padding: 6px 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .controls-table td:last-child {
+      text-align: right;
+    }
+
+    .btn-action {
+      background: #ff2a85;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 14px 36px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 3px;
+      cursor: pointer;
+      text-transform: uppercase;
+      box-shadow: 0 0 20px rgba(255, 42, 133, 0.4);
+      transition: all 0.2s ease;
+    }
+
+    .btn-action:hover {
+      background: #ff1744;
+      transform: scale(1.04);
+      box-shadow: 0 0 30px rgba(255, 23, 68, 0.7);
+    }
+
+    /* MOBILE CONTROLS */
+    #mobile-controls {
+      position: absolute;
+      bottom: 20px;
+      left: 0;
+      width: 100%;
+      height: 160px;
+      pointer-events: none;
+      display: none;
+      justify-content: space-between;
+      padding: 0 20px;
+      z-index: 50;
+    }
+
+    .touch-btn {
+      pointer-events: auto;
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      user-select: none;
+    }
+
+    .touch-btn:active {
+      background: rgba(255, 42, 133, 0.6);
+      transform: scale(0.92);
+    }
+
+    .touch-dpad {
+      position: relative;
+      width: 130px;
+      height: 130px;
+    }
+
+    .touch-actions {
+      display: grid;
+      grid-template-columns: repeat(2, 60px);
+      gap: 12px;
+      align-self: flex-end;
     }
   </style>
 </head>
 <body>
+  <!-- LOADING SCREEN -->
+  <div id="loading-screen">
+    <div class="loading-content">
+      <div class="soap-badge">PROJECT MAYHEM</div>
+      <div class="loading-quote">"The first rule of Project Mayhem is you do not ask questions."</div>
+      <div class="loading-bar-container">
+        <div id="loading-bar-fill"></div>
+      </div>
+      <div id="loading-status">INITIALIZING UNDERGROUND ARENA...</div>
+    </div>
+  </div>
+
+  <!-- START MENU MODAL -->
+  <div id="start-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="soap-badge" style="margin-bottom: 12px;">PROJECT MAYHEM</div>
+      <div class="modal-title">THE BASEMENT</div>
+      <div class="modal-subtitle">"This is your life and it's ending one minute at a time."</div>
+      
+      <table class="controls-table">
+        <tr><td>Movement</td><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></td></tr>
+        <tr><td>Dodge / Evade</td><td><kbd>SPACE</kbd></td></tr>
+        <tr><td>Light Jab</td><td><kbd>J</kbd></td></tr>
+        <tr><td>Heavy Haymaker</td><td><kbd>K</kbd></td></tr>
+        <tr><td>Guard / Block</td><td><kbd>L</kbd></td></tr>
+        <tr><td>Alter Ego Shift</td><td><kbd>TAB</kbd></td></tr>
+        <tr><td>Hitbox Wireframes</td><td><kbd>H</kbd></td></tr>
+      </table>
+
+      <button id="btn-start" class="btn-action">ENTER THE FIGHT</button>
+    </div>
+  </div>
+
+  <!-- GAME OVER / VICTORY MODAL -->
+  <div id="gameover-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div id="gameover-title" class="modal-title" style="color: #ff1744">KNOCKOUT</div>
+      <div id="gameover-subtitle" class="modal-subtitle">"It's only after we've lost everything that we're free to do anything."</div>
+      <button id="btn-restart" class="btn-action">NEXT FIGHT</button>
+    </div>
+  </div>
+
+  <!-- IN-GAME UI -->
   <div id="ui-container">
-    <div id="sanity-bar" class="stat-bar">
-      <div class="stat-fill" style="width: 100%"></div>
+    <!-- Player Meters -->
+    <div class="player-hud">
+      <div class="meter-group">
+        <div class="meter-label">
+          <span>HEALTH</span>
+          <span id="health-val">100%</span>
+        </div>
+        <div id="health-bar" class="stat-bar">
+          <div class="stat-fill" style="width: 100%"></div>
+        </div>
+      </div>
+
+      <div class="meter-group">
+        <div class="meter-label">
+          <span>STAMINA</span>
+          <span id="stamina-val">100%</span>
+        </div>
+        <div id="stamina-bar" class="stat-bar">
+          <div class="stat-fill" style="width: 100%"></div>
+        </div>
+      </div>
+
+      <div class="meter-group">
+        <div class="meter-label">
+          <span>SANITY</span>
+          <span id="sanity-val">100%</span>
+        </div>
+        <div id="sanity-bar" class="stat-bar">
+          <div class="stat-fill" style="width: 100%"></div>
+        </div>
+      </div>
     </div>
-    <div id="stamina-bar" class="stat-bar">
-      <div class="stat-fill" style="width: 100%"></div>
+
+    <!-- Enemy Meter -->
+    <div class="enemy-hud">
+      <div class="enemy-title">
+        <span>OPPONENT // BRAWLER</span>
+        <span id="enemy-health-val" style="color: #ff3344">100%</span>
+      </div>
+      <div id="enemy-health-bar">
+        <div class="stat-fill" style="width: 100%"></div>
+      </div>
     </div>
+
+    <!-- Mode Indicator -->
     <div id="personality-indicator">
-      MODE: <span id="personality-name">NARRATOR</span>
+      <div class="mode-tag">MENTAL STATE</div>
+      <span id="personality-name" class="mode-rational">RATIONAL YOU</span>
+      <div id="personality-desc">TACTICAL COUNTERS // CLEAN DEFENSE // GROUNDED</div>
     </div>
+
+    <!-- Controls Hint -->
+    <div class="controls-hint">
+      <div><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move &nbsp;|&nbsp; <kbd>SPACE</kbd> Dodge</div>
+      <div><kbd>J</kbd> Light Attack &nbsp;|&nbsp; <kbd>K</kbd> Heavy Attack &nbsp;|&nbsp; <kbd>L</kbd> Block</div>
+      <div><kbd>TAB</kbd> Shift Mind &nbsp;|&nbsp; <kbd>H</kbd> Hitbox Debug</div>
+    </div>
+
+    <div id="game-toast"></div>
     <div id="glitch-overlay" class="glitch-overlay"></div>
   </div>
+
+  <!-- Mobile Touch Controls -->
+  <div id="mobile-controls">
+    <div class="touch-dpad">
+      <div class="touch-btn" id="touch-up" style="position: absolute; top: 0; left: 36px;">▲</div>
+      <div class="touch-btn" id="touch-down" style="position: absolute; bottom: 0; left: 36px;">▼</div>
+      <div class="touch-btn" id="touch-left" style="position: absolute; top: 36px; left: 0;">◀</div>
+      <div class="touch-btn" id="touch-right" style="position: absolute; top: 36px; right: 0;">▶</div>
+    </div>
+    <div class="touch-actions">
+      <div class="touch-btn" id="touch-light">JAB</div>
+      <div class="touch-btn" id="touch-heavy">HIT</div>
+      <div class="touch-btn" id="touch-dodge">DODGE</div>
+      <div class="touch-btn" id="touch-block">GUARD</div>
+    </div>
+  </div>
+
   <script type="module" src="/src/main.js"></script>
 </body>
 </html>

@@ -1,56 +1,68 @@
-/**
- * @file E:\Fight Club\src\systems\CombatSystem.js
- * @author SOUMILCHANDRA <SOUMILCHANDRA@GMAIL.COM>
- * @description Senior implementation for Project Mayhem.
- * @version 1.0.0
- */
-/**
- * @file E:\Fight Club\src\systems\CombatSystem.js
- * @author SOUMILCHANDRA <SOUMILCHANDRA@GMAIL.COM>
- * @description Senior implementation for Project Mayhem.
- * @version 1.0.0
- */
-/**
- * @file E:\Fight Club\src\systems\CombatSystem.js
- * @description Senior implementation for Project Mayhem.
- */
 import * as THREE from 'three';
 
+/**
+ * CombatSystem: Hit detection, hit-stop frame freeze, knockback,
+ * and damage routing between entities.
+ */
 export class CombatSystem {
     constructor(game) {
         this.game = game;
     }
 
-    processPunch(attacker) {
-        const punchRange = 2;
-        const strength = attacker.stats[attacker.currentMode].strength;
+    processAttack(attacker, attackType = 'light') {
+        const isPlayer = attacker === this.game.player;
+        const targets = isPlayer ? this.game.enemies : [this.game.player];
+        if (!targets) return;
 
-        // Find all entities except attacker
-        for (const entity of this.game.entities) {
-            if (entity === attacker) continue;
-            
-            const dist = attacker.mesh.position.distanceTo(entity.mesh.position);
-            if (dist < punchRange) {
-                this.hit(attacker, entity, strength);
+        const isHeavy = attackType === 'heavy';
+        const reach = isHeavy ? 2.2 : 1.8;
+        const basePower = attacker.stats ? attacker.stats[attacker.currentMode].attackPower : 12;
+        const damage = isHeavy ? basePower * 1.7 : basePower;
+
+        const attackerPos = attacker.mesh.position;
+        const attackerDir = new THREE.Vector3();
+        attacker.mesh.getWorldDirection(attackerDir);
+
+        for (const target of targets) {
+            if (!target || target.isDead) continue;
+
+            const targetPos = target.mesh.position;
+            const toTarget = new THREE.Vector3().subVectors(targetPos, attackerPos);
+            toTarget.y = 0;
+            const dist = toTarget.length();
+
+            if (dist <= reach) {
+                // Check if target is in front of attacker (cone within ~100 degrees)
+                toTarget.normalize();
+                const dot = attackerDir.dot(toTarget);
+                if (dot > 0.1 || dist < 1.0) {
+                    this.executeHit(attacker, target, damage, isHeavy);
+                    break;
+                }
             }
         }
     }
 
-    hit(attacker, target, damage) {
-        if (target.takeDamage) {
-            target.takeDamage(damage);
+    executeHit(attacker, target, damage, isHeavy = false) {
+        // Hit-stop effect (short pause for visual punch impact)
+        if (this.game.triggerHitStop) {
+            this.game.triggerHitStop(isHeavy ? 0.08 : 0.04);
         }
 
-        // Visual feedback
-        this.game.cameraShake(0.3);
-        
-        // Add a small blood/hit effect (simple particle or flash)
-        console.log(`COMBAT: ${attacker.constructor.name} hit ${target.constructor.name} for ${damage}`);
+        // Damage target
+        if (target.takeDamage) {
+            target.takeDamage(damage, attacker);
+        }
+
+        // Screen shake
+        if (this.game.cameraShake) {
+            this.game.cameraShake(isHeavy ? 0.5 : 0.25);
+        }
+
+        // Particle sparks / hit flash
+        if (this.game.effects) {
+            const hitPos = target.mesh.position.clone().add(new THREE.Vector3(0, 1.2, 0));
+            this.game.effects.spawnHitSparks(hitPos, isHeavy ? 0xff3e3e : 0xffffff);
+        }
     }
 }
-
-// End of module: E:\Fight Club\src\systems\CombatSystem.js
-
-// Module finalized by SOUMILCHANDRA
-
-// Module finalized by SOUMILCHANDRA

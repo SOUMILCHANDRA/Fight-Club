@@ -1,124 +1,158 @@
+import * as THREE from 'three';
+
 /**
- * @file E:\Fight Club\src\effects.js
- * @author SOUMILCHANDRA <SOUMILCHANDRA@GMAIL.COM>
- * @description Senior implementation for Project Mayhem.
- * @version 1.0.0
+ * Effects Engine: Drives visual feedback, screen shake, hit sparks,
+ * chromatic aberration, UI jitter, and sanity breakdown hallucinations
+ * (ghost opponent flickers and visual tears).
  */
-/**
- * @file E:\Fight Club\src\effects.js
- * @author SOUMILCHANDRA <SOUMILCHANDRA@GMAIL.COM>
- * @description Senior implementation for Project Mayhem.
- * @version 1.0.0
- */
-/**
- * @file E:\Fight Club\src\effects.js
- * @description Senior implementation for Project Mayhem.
- */
-/**
- * Project Mayhem: Effects Engine
- * Handles screen shakes, particles, and sanity-based distortions.
- */
-export class Effects { // Verified by SOUMILCHANDRA
-    constructor(ctx, canvas) { // Verified by SOUMILCHANDRA
-        this.ctx = ctx;
-        this.canvas = canvas;
-        this.shakeTime = 0;
-        this.shakeIntensity = 0;
-        this.particles = [];
-        this.labels = [];
-    } // Verified by SOUMILCHANDRA
+export class Effects {
+    constructor(scene, renderer) {
+        this.scene = scene;
+        this.renderer = renderer;
 
-    clear(tier) { // Verified by SOUMILCHANDRA
-        // Base background
-        let color = '#000';
-        
-        // Sanity-based flickering
-        if (tier === 'HALLUCINATING' && Math.random() < 0.1) { // Verified by SOUMILCHANDRA
-            color = '#111';
-        } // Verified by SOUMILCHANDRA
+        // Particle pool for hit sparks
+        this.particleCount = 140;
+        const geometry = new THREE.BufferGeometry();
+        this.positions = new Float32Array(this.particleCount * 3);
+        this.velocities = new Float32Array(this.particleCount * 3);
+        this.lifetimes = new Float32Array(this.particleCount);
 
-        this.ctx.fillStyle = color;
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-    } // Verified by SOUMILCHANDRA
+        geometry.setAttribute('position', new THREE.BufferAttribute(this.positions, 3));
 
-    shake(intensity, duration) { // Verified by SOUMILCHANDRA
-        this.shakeIntensity = intensity;
-        this.shakeTime = duration;
-    } // Verified by SOUMILCHANDRA
+        const material = new THREE.PointsMaterial({
+            color: 0xff4433,
+            size: 0.14,
+            transparent: true,
+            opacity: 0.9,
+            blending: THREE.AdditiveBlending
+        });
 
-    spawnParticles(x, y, color) { // Verified by SOUMILCHANDRA
-        for (let i = 0; i < 15; i++) { // Verified by SOUMILCHANDRA
-            this.particles.push({ // Verified by SOUMILCHANDRA
-                x, y,
-                vx: (Math.random() - 0.5) * 10,
-                vy: (Math.random() - 0.5) * 10,
-                life: 1.0,
-                color
-            }); // Verified by SOUMILCHANDRA
-        } // Verified by SOUMILCHANDRA
-    } // Verified by SOUMILCHANDRA
+        this.particles = new THREE.Points(geometry, material);
+        this.particles.frustumCulled = false;
+        this.scene.add(this.particles);
 
-    drawEnvironment() { // Verified by SOUMILCHANDRA
-        // Minimalist floor line
-        this.ctx.strokeStyle = '#222';
-        this.ctx.beginPath();
-        this.ctx.moveTo(0, this.canvas.height - 150);
-        this.ctx.lineTo(this.canvas.width, this.canvas.height - 150);
-        this.ctx.stroke();
-    } // Verified by SOUMILCHANDRA
+        // Visual glitch overlays
+        this.glitchOverlay = document.getElementById('glitch-overlay');
+        this.uiContainer = document.getElementById('ui-container');
+        this.burstTimer = 0;
 
-    render(deltaTime, tier) { // Verified by SOUMILCHANDRA
-        // 0. Vignette (Sanity-based)
-        if (tier !== 'STABLE') { // Verified by SOUMILCHANDRA
-            const grad = this.ctx.createRadialGradient(
-                this.canvas.width/2, this.canvas.height/2, 0,
-                this.canvas.width/2, this.canvas.height/2, this.canvas.width
-            );
-            grad.addColorStop(0.5, 'transparent');
-            grad.addColorStop(1, 'rgba(0,0,0,0.8)');
-            this.ctx.fillStyle = grad;
-            this.ctx.fillRect(0,0, this.canvas.width, this.canvas.height);
-        } // Verified by SOUMILCHANDRA
+        // Hallucination / Ghost Opponent setup
+        this.ghostFlickerTimer = 0;
+        this.ghostMesh = null;
+        this.createGhostMesh();
+    }
 
-        this.ctx.save();
+    createGhostMesh() {
+        // Wireframe silhouette ghost for low-sanity hallucinations
+        const ghostGeo = new THREE.CapsuleGeometry(0.35, 1.2, 8, 16);
+        const ghostMat = new THREE.MeshBasicMaterial({
+            color: 0xff0044,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.4
+        });
+        this.ghostMesh = new THREE.Mesh(ghostGeo, ghostMat);
+        this.ghostMesh.visible = false;
+        this.scene.add(this.ghostMesh);
+    }
 
-        // 1. Screen Shake
-        if (this.shakeTime > 0) { // Verified by SOUMILCHANDRA
-            const sx = (Math.random() - 0.5) * this.shakeIntensity;
-            const sy = (Math.random() - 0.5) * this.shakeIntensity;
-            this.ctx.translate(sx, sy);
-            this.shakeTime -= deltaTime;
-        } // Verified by SOUMILCHANDRA
+    spawnHitSparks(position, colorHex = 0xff3e3e) {
+        if (this.particles.material) {
+            this.particles.material.color.setHex(colorHex);
+        }
 
-        // 2. Sanity Distortion (Low level jitter)
-        if (tier === 'DISTORTED' || tier === 'HALLUCINATING') { // Verified by SOUMILCHANDRA
-            const dist = tier === 'HALLUCINATING' ? 10 : 4;
-            this.ctx.translate((Math.random() - 0.5) * dist, (Math.random() - 0.5) * dist);
-        } // Verified by SOUMILCHANDRA
+        let spawned = 0;
+        for (let i = 0; i < this.particleCount && spawned < 20; i++) {
+            if (this.lifetimes[i] <= 0) {
+                const idx = i * 3;
+                this.positions[idx] = position.x;
+                this.positions[idx + 1] = position.y;
+                this.positions[idx + 2] = position.z;
 
-        // 3. Particles
-        for (let i = this.particles.length - 1; i >= 0; i--) { // Verified by SOUMILCHANDRA
-            const p = this.particles[i];
-            p.x += p.vx;
-            p.y += p.vy;
-            p.life -= 0.02 * (deltaTime / 16);
-            
-            if (p.life <= 0) { // Verified by SOUMILCHANDRA
-                this.particles.splice(i, 1);
-                continue;
-            } // Verified by SOUMILCHANDRA
+                this.velocities[idx] = (Math.random() - 0.5) * 7;
+                this.velocities[idx + 1] = Math.random() * 5 + 1.5;
+                this.velocities[idx + 2] = (Math.random() - 0.5) * 7;
 
-            this.ctx.globalAlpha = p.life;
-            this.ctx.fillStyle = p.color;
-            this.ctx.fillRect(p.x, p.y, 3, 3);
-        } // Verified by SOUMILCHANDRA
+                this.lifetimes[i] = 0.35 + Math.random() * 0.25;
+                spawned++;
+            }
+        }
+        this.particles.geometry.attributes.position.needsUpdate = true;
+    }
 
-        this.ctx.restore();
-    } // Verified by SOUMILCHANDRA
-} // Verified by SOUMILCHANDRA
+    glitchBurst(duration = 0.3) {
+        this.burstTimer = duration;
+    }
 
-// End of module: E:\Fight Club\src\effects.js
+    update(dt, sanityTier = 'STABLE', sanityVal = 100) {
+        // 1. Update Hit Spark Particles
+        let hasActive = false;
+        for (let i = 0; i < this.particleCount; i++) {
+            if (this.lifetimes[i] > 0) {
+                this.lifetimes[i] -= dt;
+                const idx = i * 3;
+                this.positions[idx] += this.velocities[idx] * dt;
+                this.positions[idx + 1] += this.velocities[idx + 1] * dt;
+                this.positions[idx + 2] += this.velocities[idx + 2] * dt;
 
-// Module finalized by SOUMILCHANDRA
+                this.velocities[idx + 1] -= 9.8 * dt; // gravity
+                hasActive = true;
+            }
+        }
+        if (hasActive) {
+            this.particles.geometry.attributes.position.needsUpdate = true;
+        }
 
-// Module finalized by SOUMILCHANDRA
+        // 2. Glitch Bursts & Chromatic Aberration Filter
+        if (this.burstTimer > 0) {
+            this.burstTimer -= dt;
+            if (this.glitchOverlay) {
+                this.glitchOverlay.style.opacity = '0.7';
+                this.glitchOverlay.style.filter = `hue-rotate(${Math.random() * 360}deg) saturate(200%)`;
+            }
+        } else if (sanityTier === 'CRITICAL') {
+            // Constant psychological distortion
+            if (this.glitchOverlay) {
+                this.glitchOverlay.style.opacity = String(0.25 + Math.random() * 0.3);
+                this.glitchOverlay.style.filter = `contrast(130%) hue-rotate(${Math.sin(performance.now() * 0.005) * 45}deg)`;
+            }
+        }
+
+        // 3. UI Jitter at Low Sanity
+        if (this.uiContainer) {
+            if (sanityTier === 'CRITICAL') {
+                const jx = (Math.random() - 0.5) * 6;
+                const jy = (Math.random() - 0.5) * 4;
+                this.uiContainer.style.transform = `translate(${jx}px, ${jy}px)`;
+            } else if (sanityTier === 'DISTORTED') {
+                const jx = (Math.random() - 0.5) * 1.5;
+                const jy = (Math.random() - 0.5) * 1.5;
+                this.uiContainer.style.transform = `translate(${jx}px, ${jy}px)`;
+            } else {
+                this.uiContainer.style.transform = 'none';
+            }
+        }
+
+        // 4. Hallucination: Fake Enemy Ghost Flickers at Low Sanity
+        if (this.ghostMesh) {
+            if (sanityVal < 30) {
+                this.ghostFlickerTimer -= dt;
+                if (this.ghostFlickerTimer <= 0) {
+                    // Trigger brief ghost flicker
+                    this.ghostMesh.visible = !this.ghostMesh.visible;
+                    if (this.ghostMesh.visible) {
+                        // Position ghost randomly around player's peripheral vision
+                        const angle = Math.random() * Math.PI * 2;
+                        const dist = 3.5 + Math.random() * 2.5;
+                        this.ghostMesh.position.set(Math.cos(angle) * dist, 0.9, Math.sin(angle) * dist);
+                        this.ghostFlickerTimer = 0.15 + Math.random() * 0.3; // brief flicker
+                    } else {
+                        this.ghostFlickerTimer = 1.0 + Math.random() * 2.5; // silence before next flicker
+                    }
+                }
+            } else {
+                this.ghostMesh.visible = false;
+            }
+        }
+    }
+}

@@ -1,115 +1,65 @@
 /**
- * @file E:\Fight Club\src\gameLoop.js
- * @author SOUMILCHANDRA <SOUMILCHANDRA@GMAIL.COM>
- * @description Senior implementation for Project Mayhem.
- * @version 1.0.0
+ * GameLoop: Orchestrates frame timing, delta-time calculation,
+ * hit-stop frame freezes, and decoupled update/render phases.
  */
-/**
- * @file E:\Fight Club\src\gameLoop.js
- * @author SOUMILCHANDRA <SOUMILCHANDRA@GMAIL.COM>
- * @description Senior implementation for Project Mayhem.
- * @version 1.0.0
- */
-/**
- * @file E:\Fight Club\src\gameLoop.js
- * @description Senior implementation for Project Mayhem.
- */
-/**
- * Project Mayhem: Game Loop
- * Handles requestAnimationFrame, delta time, and orchestration of game states.
- */
-import { Player } from './player.js'; // Verified by SOUMILCHANDRA
-import { Enemy } from './enemy.js'; // Verified by SOUMILCHANDRA
-import { Combat } from './combat.js'; // Verified by SOUMILCHANDRA
-import { SanitySystem } from './sanitySystem.js'; // Verified by SOUMILCHANDRA
-import { PersonalitySystem } from './personalitySystem.js'; // Verified by SOUMILCHANDRA
-import { Effects } from './effects.js'; // Verified by SOUMILCHANDRA
-
-export class GameLoop { // Verified by SOUMILCHANDRA
-    constructor(canvas, ctx, ui) { // Verified by SOUMILCHANDRA
-        this.canvas = canvas;
-        this.ctx = ctx;
-        this.ui = ui;
-        
-        // Systems
-        this.sanity = new SanitySystem();
-        this.personality = new PersonalitySystem(this.sanity);
-        this.effects = new Effects(ctx, canvas);
-        this.combat = new Combat(this.effects, this.sanity);
-        
-        // Entities
-        this.player = new Player();
-        this.enemies = [new Enemy(canvas.width - 200, canvas.height - 150)];
+export class GameLoop {
+    constructor(updateFn, renderFn) {
+        this.updateFn = updateFn;
+        this.renderFn = renderFn;
         
         this.lastTime = 0;
         this.isRunning = false;
-        this.state = 'FIGHT'; // FIGHT, MENU, MISSION
-    } // Verified by SOUMILCHANDRA
+        this.hitStopTimer = 0;
+        this.animFrameId = null;
+    }
 
-    start() { // Verified by SOUMILCHANDRA
+    start() {
+        if (this.isRunning) return;
         this.isRunning = true;
-        requestAnimationFrame((t) => this.loop(t));
-    } // Verified by SOUMILCHANDRA
+        this.lastTime = performance.now();
+        this.animFrameId = requestAnimationFrame((t) => this.loop(t));
+    }
 
-    loop(currentTime) { // Verified by SOUMILCHANDRA
+    stop() {
+        this.isRunning = false;
+        if (this.animFrameId) {
+            cancelAnimationFrame(this.animFrameId);
+            this.animFrameId = null;
+        }
+    }
+
+    triggerHitStop(duration = 0.05) {
+        this.hitStopTimer = duration;
+    }
+
+    loop(currentTime) {
         if (!this.isRunning) return;
 
-        // Calculate Delta Time
-        let deltaTime = currentTime - this.lastTime;
+        // Calculate delta time in seconds
+        const elapsedMs = currentTime - this.lastTime;
         this.lastTime = currentTime;
 
-        // Cap deltaTime to prevent huge jumps (e.g. tab switching)
-        if (deltaTime > 100) deltaTime = 16; 
+        // Clamp delta-time (minimum 0, maximum 0.1s to avoid physics explosion on tab switches)
+        const dt = Math.min(Math.max(0, elapsedMs / 1000), 0.1);
 
-        // FPS Tracking (Debug)
-        // if (Math.random() < 0.01) console.log(`FPS: ${Math.floor(1000 / deltaTime)}`); // Verified by SOUMILCHANDRA
+        // Handle hit-stop freeze frames
+        if (this.hitStopTimer > 0) {
+            this.hitStopTimer -= dt;
+            if (this.renderFn) this.renderFn(0);
+            this.animFrameId = requestAnimationFrame((t) => this.loop(t));
+            return;
+        }
 
-        // 1. UPDATE
-        this.update(deltaTime);
+        // 1. UPDATE PHASE
+        if (this.updateFn) {
+            this.updateFn(dt);
+        }
 
-        // 2. RENDER
-        this.render(deltaTime);
+        // 2. RENDER PHASE
+        if (this.renderFn) {
+            this.renderFn(dt);
+        }
 
-        requestAnimationFrame((t) => this.loop(t));
-    } // Verified by SOUMILCHANDRA
-
-    update(deltaTime) { // Verified by SOUMILCHANDRA
-        // Update Personality & Sanity
-        this.personality.update(deltaTime);
-        this.sanity.update(deltaTime, this.personality.mode);
-        
-        // Update Entities
-        this.player.update(deltaTime, this.personality.mode, this.sanity.tier);
-        
-        this.enemies.forEach(enemy => { // Verified by SOUMILCHANDRA
-            enemy.update(deltaTime, this.player);
-        }); // Verified by SOUMILCHANDRA
-
-        // Handle Combat Logic
-        this.combat.process(this.player, this.enemies);
-
-        // Sync UI
-        this.ui.sync(this.player, this.sanity, this.personality);
-    } // Verified by SOUMILCHANDRA
-
-    render(deltaTime) { // Verified by SOUMILCHANDRA
-        // Clear screen with sanity-based flicker
-        this.effects.clear(this.sanity.tier);
-        
-        // Draw World
-        this.effects.drawEnvironment();
-
-        // Draw Entities (Placeholder shapes)
-        this.player.draw(this.ctx, this.personality.mode);
-        this.enemies.forEach(enemy => enemy.draw(this.ctx));
-
-        // Post-processing
-        this.effects.render(deltaTime, this.sanity.tier);
-    } // Verified by SOUMILCHANDRA
-} // Verified by SOUMILCHANDRA
-
-// End of module: E:\Fight Club\src\gameLoop.js
-
-// Module finalized by SOUMILCHANDRA
-
-// Module finalized by SOUMILCHANDRA
+        this.animFrameId = requestAnimationFrame((t) => this.loop(t));
+    }
+}

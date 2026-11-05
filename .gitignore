@@ -3,6 +3,12 @@ scratch/
 dist/
 .DS_Store
 
+# Junk & spam artifacts
+git_heartbeat*.txt
+git_spam.ps1
+*.png
+test_*.cjs
+
 # Unity Project Exclusions
 UnityProject/Library/
 UnityProject/Temp/
@@ -26,4 +32,3 @@ UnityProject/MemoryCaptures/
 *.opendb
 *.IDB
 *.VC.db
-
