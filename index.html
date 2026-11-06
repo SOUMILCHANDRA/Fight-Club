@@ -185,7 +185,7 @@
 
     .enemy-title {
       font-size: 0.75rem;
-      letter-spacing: 3px;
+      letter-spacing: 2px;
       font-weight: 700;
       color: #e0e0e0;
       text-transform: uppercase;
@@ -218,7 +218,7 @@
 
     .mode-tag {
       font-size: 0.65rem;
-      letter-spacing: 3px;
+      letter-spacing: 2px;
       color: #777;
       text-transform: uppercase;
     }
@@ -258,26 +258,91 @@
       max-width: 280px;
     }
 
-    /* Controls HUD (Bottom Right) */
-    .controls-hint {
+    /* REBUILT CONTROLS HUD (Bottom Right) */
+    .controls-panel {
       position: absolute;
       bottom: 25px;
       right: 30px;
-      text-align: right;
-      font-size: 0.65rem;
-      line-height: 1.6;
-      letter-spacing: 1px;
-      color: #777;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      column-gap: 10px;
+      row-gap: 6px;
+      align-items: center;
+      background: rgba(10, 10, 15, 0.7);
+      padding: 12px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
+      backdrop-filter: blur(4px);
     }
 
-    .controls-hint kbd {
+    .controls-key {
+      display: flex;
+      gap: 3px;
+      justify-content: flex-end;
+    }
+
+    .controls-key kbd {
+      display: inline-block;
+      min-width: 20px;
+      text-align: center;
       background: rgba(255, 255, 255, 0.12);
       color: #fff;
       padding: 2px 6px;
       border-radius: 3px;
       font-family: var(--font-mono);
       font-size: 0.65rem;
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      font-weight: 700;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    }
+
+    .controls-label {
+      font-size: 0.64rem;
+      letter-spacing: 1px;
+      color: #bbb;
+      text-transform: uppercase;
+    }
+
+    /* Floating Combat Damage Numbers */
+    #damage-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 25;
+    }
+
+    .damage-number {
+      position: absolute;
+      font-family: var(--font-sans);
+      font-size: 1.25rem;
+      font-weight: 900;
+      letter-spacing: 1px;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9), 0 0 12px currentColor;
+      transform: translate(-50%, -50%);
+      animation: floatDamage 0.75s ease-out forwards;
+      pointer-events: none;
+    }
+
+    @keyframes floatDamage {
+      0% { opacity: 1; transform: translate(-50%, -50%) scale(0.8); }
+      20% { transform: translate(-50%, -70%) scale(1.3); }
+      100% { opacity: 0; transform: translate(-50%, -120%) scale(1.0); }
+    }
+
+    /* Screen Flash Transition */
+    #screen-flash {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      opacity: 0;
+      z-index: 80;
+      transition: opacity 0.18s ease-out;
     }
 
     /* Dynamic Toast */
@@ -496,6 +561,10 @@
     </div>
   </div>
 
+  <!-- SCREEN FLASH & DAMAGE OVERLAY -->
+  <div id="screen-flash"></div>
+  <div id="damage-container"></div>
+
   <!-- IN-GAME UI -->
   <div id="ui-container">
     <!-- Player Meters -->
@@ -549,11 +618,28 @@
       <div id="personality-desc">TACTICAL COUNTERS // CLEAN DEFENSE // GROUNDED</div>
     </div>
 
-    <!-- Controls Hint -->
-    <div class="controls-hint">
-      <div><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move &nbsp;|&nbsp; <kbd>SPACE</kbd> Dodge</div>
-      <div><kbd>J</kbd> Light Attack &nbsp;|&nbsp; <kbd>K</kbd> Heavy Attack &nbsp;|&nbsp; <kbd>L</kbd> Block</div>
-      <div><kbd>TAB</kbd> Shift Mind &nbsp;|&nbsp; <kbd>H</kbd> Hitbox Debug</div>
+    <!-- Rebuilt Controls Panel (Grid layout, clean spacing) -->
+    <div class="controls-panel">
+      <div class="controls-key"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></div>
+      <div class="controls-label">Move</div>
+
+      <div class="controls-key"><kbd>SPACE</kbd></div>
+      <div class="controls-label">Dodge</div>
+
+      <div class="controls-key"><kbd>J</kbd></div>
+      <div class="controls-label">Light Jab</div>
+
+      <div class="controls-key"><kbd>K</kbd></div>
+      <div class="controls-label">Heavy Haymaker</div>
+
+      <div class="controls-key"><kbd>L</kbd></div>
+      <div class="controls-label">Guard / Block</div>
+
+      <div class="controls-key"><kbd>TAB</kbd></div>
+      <div class="controls-label">Shift Mind</div>
+
+      <div class="controls-key"><kbd>H</kbd></div>
+      <div class="controls-label">Hitboxes</div>
     </div>
 
     <div id="game-toast"></div>

@@ -1,10 +1,14 @@
+import * as THREE from 'three';
+
 /**
  * UIManager: Manages HUD meters (Health, Stamina, Sanity, Enemy Health),
- * personality badges, damage vignettes, loading screen, start menu,
- * game-over modals, and toast notifications.
+ * floating combat damage indicators, personality badges, screen flash transitions,
+ * loading screen, start menu, and victory/game-over screens.
  */
 export class UIManager {
     constructor() {
+        this.game = null;
+
         // Loading elements
         this.loadingScreen = document.getElementById('loading-screen');
         this.loadingBar = document.getElementById('loading-bar-fill');
@@ -34,9 +38,15 @@ export class UIManager {
         this.personalityName = document.getElementById('personality-name');
         this.personalityDesc = document.getElementById('personality-desc');
         this.glitchOverlay = document.getElementById('glitch-overlay');
+        this.screenFlash = document.getElementById('screen-flash');
 
-        // Notification / Toast
+        // Toast & Floating Damage container
         this.toast = document.getElementById('game-toast');
+        this.damageContainer = document.getElementById('damage-container');
+    }
+
+    setGame(game) {
+        this.game = game;
     }
 
     initModals(onStart, onRestart) {
@@ -65,16 +75,39 @@ export class UIManager {
         this.gameoverModal.classList.remove('hidden');
 
         if (isVictory) {
-            this.gameoverTitle.innerText = 'OPPONENT DOWN';
+            this.gameoverTitle.innerText = 'YOU WIN // OPPONENT DOWN';
             this.gameoverTitle.style.color = '#00d4ff';
             this.gameoverSubtitle.innerText = '"You broke the rules and survived. The club respects power."';
-            this.btnRestart.innerText = 'NEXT FIGHT';
+            this.btnRestart.innerText = 'NEXT OPPONENT';
         } else {
-            this.gameoverTitle.innerText = 'KNOCKED OUT';
+            this.gameoverTitle.innerText = 'YOU DIED // KNOCKED OUT';
             this.gameoverTitle.style.color = '#ff1744';
             this.gameoverSubtitle.innerText = '"It is only after we have lost everything that we are free to do anything."';
-            this.btnRestart.innerText = 'GET BACK UP';
+            this.btnRestart.innerText = 'RETRY FIGHT';
         }
+    }
+
+    showDamageText(worldPos, text, color = '#ff1744') {
+        if (!this.damageContainer || !this.game || !this.game.camera) return;
+
+        // Project 3D world position to 2D screen space
+        const pos = worldPos.clone().add(new THREE.Vector3(0, 1.4, 0));
+        pos.project(this.game.camera);
+
+        const x = (pos.x * 0.5 + 0.5) * window.innerWidth;
+        const y = (-pos.y * 0.5 + 0.5) * window.innerHeight;
+
+        const el = document.createElement('div');
+        el.className = 'damage-number';
+        el.innerText = text;
+        el.style.left = `${x}px`;
+        el.style.top = `${y}px`;
+        el.style.color = color;
+        this.damageContainer.appendChild(el);
+
+        setTimeout(() => {
+            if (el.parentNode) el.parentNode.removeChild(el);
+        }, 800);
     }
 
     setLoadingProgress(percent, message) {
@@ -116,7 +149,6 @@ export class UIManager {
         if (this.staminaVal) this.staminaVal.innerText = `${Math.round(staminaPercent * 100)}%`;
         if (this.sanityVal) this.sanityVal.innerText = `${Math.round(sanityPercent * 100)}%`;
 
-        // Glitch intensity tied to low sanity
         if (this.glitchOverlay) {
             if (sanityPercent < 0.35) {
                 this.glitchOverlay.style.opacity = String((0.35 - sanityPercent) * 2.2);
@@ -145,6 +177,15 @@ export class UIManager {
             this.personalityDesc.innerText = isTyler 
                 ? 'AGGRESSIVE COMBO POWER // ZERO INHIBITION // UNSTABLE'
                 : 'TACTICAL COUNTERS // CLEAN DEFENSE // GROUNDED';
+        }
+
+        // Screen Flash Transition
+        if (this.screenFlash) {
+            this.screenFlash.style.backgroundColor = isTyler ? 'rgba(255, 23, 68, 0.35)' : 'rgba(0, 212, 255, 0.35)';
+            this.screenFlash.style.opacity = '1';
+            setTimeout(() => {
+                this.screenFlash.style.opacity = '0';
+            }, 180);
         }
 
         this.showToast(isTyler ? '⚠️ ALTER EGO MANIFESTED: TYLER DURDEN' : 'CALM RESTORED: RATIONAL MIND');

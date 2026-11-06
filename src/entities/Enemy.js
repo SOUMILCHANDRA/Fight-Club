@@ -1,69 +1,73 @@
 import * as THREE from 'three';
 
 /**
- * Enemy Entity: Brawler AI with procedural animation, capsule fallback,
- * GLTF model loading, and dynamic combat states (approach, attack, retreat, block).
+ * Enemy Entity (The Brawler): Full-body animated humanoid with AnimationMixer,
+ * AI state machine (approach, jab/hook combos, block, back-off),
+ * damage flashing, knockback, and knockout death collapse.
  */
 export class Enemy {
-    constructor(game, position = new THREE.Vector3(0, 0, -5)) {
+    constructor(game, position = new THREE.Vector3(0, 0, -2.5)) {
         this.game = game;
         this.assetLoader = game.assetLoader;
 
-        // Root container for world transform
+        // World transform root
         this.mesh = new THREE.Group();
         this.mesh.name = 'EnemyRoot';
         this.mesh.position.copy(position);
+        this.mesh.rotation.y = 0; // Face south toward player
 
-        // Visual root that receives procedural animation offsets/rotations
+        // Visual root holding model
         this.visualRoot = new THREE.Group();
         this.visualRoot.name = 'EnemyVisualRoot';
         this.mesh.add(this.visualRoot);
 
+        // Animation state
+        this.mixer = null;
+        this.actions = {};
+        this.currentAction = null;
+        this.currentState = 'idle';
+
         // Stats
-        this.maxHealth = 80;
-        this.health = 80;
+        this.maxHealth = 85;
+        this.health = 85;
         this.speed = 3.2;
-        this.attackPower = 10;
         this.isDead = false;
         this.isBlocking = false;
 
         // AI State
-        this.state = 'idle'; // 'approach', 'attack', 'retreat', 'block', 'idle'
-        this.aiTimer = 0;
+        this.aiState = 'idle'; // 'approach', 'attack', 'retreat', 'block', 'idle'
         this.attackCooldown = 1.0;
-        this.attackType = 'light';
+        this.comboCounter = 0;
+        this.blockTimer = 0;
 
-        // Procedural Animation State
-        this.animState = 'idle';
-        this.animTime = 0;
-        this.animDuration = 0;
-        this.walkCycle = 0;
-        this.idleCycle = Math.random() * 5;
-
-        // Fallback capsule mesh immediately (underground brawler maroon)
-        this.fallback = this.assetLoader.createCapsuleFallback(0x8b263e, 1.85, 'Enemy');
+        // Fallback capsule
+        this.fallback = this.assetLoader.createCapsuleFallback(0x8b263e, 1.8, 'Enemy');
         this.visualRoot.add(this.fallback);
 
-        // Enemy local rim light
-        this.rimLight = new THREE.PointLight(0xff5533, 1.2, 4);
-        this.rimLight.position.set(0, 1.7, -0.5);
+        // Rim light
+        this.rimLight = new THREE.PointLight(0xff3344, 1.8, 5);
+        this.rimLight.position.set(0, 1.8, -0.6);
         this.mesh.add(this.rimLight);
 
-        // Load 3D model
+        // Load full-body animated model
         this.loadModel();
     }
 
     async loadModel() {
         try {
-            const model = await this.assetLoader.loadModel('/models/narrator.glb', 1.85);
-            // Apply darker, scarred fighter tinting to distinguish enemy
-            model.traverse((child) => {
-                if (child.isMesh && child.material) {
-                    if (Array.isArray(child.material)) {
-                        child.material = child.material.map(m => this.createEnemyMaterial(m));
-                    } else {
-                        child.material = this.createEnemyMaterial(child.material);
-                    }
+            const data = await this.assetLoader.loadAnimatedModel('/models/fighter.glb', 1.8);
+            this.model = data.model;
+            this.mixer = data.mixer;
+            this.actions = data.actions;
+
+            // Apply underground brawler theme
+            this.assetLoader.applyTheme(this.model, 'brawler');
+
+            // Finished listener
+            this.mixer.addEventListener('finished', (e) => {
+                if (this.isDead) return;
+                if (['light_punch', 'heavy_punch', 'hit', 'heavy_hit'].includes(this.currentState)) {
+                    this.playAction('idle', 0.15);
                 }
             });
 
@@ -71,51 +75,56 @@ export class Enemy {
             while (this.visualRoot.children.length > 0) {
                 this.visualRoot.remove(this.visualRoot.children[0]);
             }
-            this.visualRoot.add(model);
+            this.visualRoot.add(data.wrapper);
+
+            this.playAction('idle', 0.1);
         } catch (err) {
-            console.warn('[Enemy] Model load failed, keeping capsule fallback:', err);
+            console.warn('[Enemy] Failed to load animated model, keeping capsule fallback:', err);
         }
     }
 
-    createEnemyMaterial(origMat) {
-        const mat = origMat.clone();
-        if (mat.color) {
-            // Darken and shift towards gritty bruised red-brown
-            mat.color.multiplyScalar(0.7);
-            mat.color.r = Math.min(1.0, mat.color.r * 1.3);
-        }
-        return mat;
-    }
+    playAction(name, crossFadeDuration = 0.18, timeScale = 1.0) {
+        if (!this.actions || !this.actions[name]) return;
+        if (this.currentState === 'ko') return;
 
-    triggerAnimation(state, duration = 0.3) {
-        if (this.animState === 'ko') return;
-        this.animState = state;
-        this.animTime = 0;
-        this.animDuration = duration;
+        const nextAction = this.actions[name];
+        if (this.currentAction === nextAction && nextAction.isRunning()) return;
+
+        nextAction.reset();
+        nextAction.setEffectiveTimeScale(timeScale);
+        nextAction.setEffectiveWeight(1.0);
+
+        if (this.currentAction && this.currentAction !== nextAction) {
+            this.currentAction.crossFadeTo(nextAction, crossFadeDuration, true);
+        }
+        nextAction.play();
+
+        this.currentAction = nextAction;
+        this.currentState = name;
     }
 
     update(dt) {
-        if (this.isDead) {
-            this.updateProceduralAnimation(dt);
-            return;
+        if (this.mixer) {
+            this.mixer.update(dt);
         }
 
+        if (this.isDead) return;
+
         this.updateAI(dt);
-        this.updateProceduralAnimation(dt);
     }
 
     updateAI(dt) {
         if (!this.game.player || this.game.player.isDead) {
-            this.animState = 'idle';
+            this.playAction('idle', 0.2);
             return;
         }
 
         const playerPos = this.game.player.mesh.position;
         const toPlayer = new THREE.Vector3().subVectors(playerPos, this.mesh.position);
-        toPlayer.y = 0; // lock horizontal plane
+        toPlayer.y = 0;
         const dist = toPlayer.length();
 
-        // Always smoothly face player
+        // Face player smoothly
         if (dist > 0.1) {
             const targetRotation = Math.atan2(toPlayer.x, toPlayer.z);
             let diff = targetRotation - this.mesh.rotation.y;
@@ -124,81 +133,85 @@ export class Enemy {
             this.mesh.rotation.y += diff * 8 * dt;
         }
 
-        this.aiTimer -= dt;
         this.attackCooldown -= dt;
 
-        // If in middle of an attack or hit flinch, wait
-        if (this.animState === 'attack' || this.animState === 'hit') {
+        // If currently executing a punch or reeling from a hit, wait
+        if (['light_punch', 'heavy_punch', 'hit', 'heavy_hit'].includes(this.currentState)) {
             return;
         }
 
-        // Simple State Machine
-        const attackRange = 1.6;
-        const retreatRange = 1.0;
-
-        if (dist > attackRange) {
-            // Approach
-            this.state = 'approach';
-            this.isBlocking = false;
-            this.animState = 'walk';
-
-            const moveDir = toPlayer.clone().normalize();
-            this.mesh.position.addScaledVector(moveDir, this.speed * dt);
-            this.walkCycle += dt * this.speed;
-        } else if (dist <= attackRange && dist >= retreatRange) {
-            // In striking zone
-            if (this.attackCooldown <= 0) {
-                // Decide action: 70% attack, 30% block
-                if (Math.random() < 0.7) {
-                    this.performAttack();
-                } else {
-                    this.isBlocking = true;
-                    this.animState = 'block';
-                    this.attackCooldown = 0.8 + Math.random() * 0.5;
-                }
-            } else {
-                if (this.isBlocking) {
-                    this.animState = 'block';
-                } else {
-                    this.animState = 'idle';
-                }
+        // Active blocking countdown
+        if (this.isBlocking) {
+            this.blockTimer -= dt;
+            if (this.blockTimer <= 0) {
+                this.isBlocking = false;
+                this.playAction('idle', 0.15);
             }
-        } else {
-            // Too close: retreat back slightly to reset spacing
-            this.state = 'retreat';
-            this.animState = 'walk';
-            const retreatDir = toPlayer.clone().negate().normalize();
-            this.mesh.position.addScaledVector(retreatDir, (this.speed * 0.7) * dt);
-            this.walkCycle += dt * this.speed;
+            return;
         }
 
-        // Clamp inside arena bounds (-18 to +18)
-        this.mesh.position.x = Math.max(-18, Math.min(18, this.mesh.position.x));
-        this.mesh.position.z = Math.max(-18, Math.min(18, this.mesh.position.z));
+        const strikeReach = 1.75;
+        const backOffDist = 1.1;
+
+        if (dist > strikeReach) {
+            // Approach player
+            this.aiState = 'approach';
+            const moveDir = toPlayer.clone().normalize();
+            this.mesh.position.addScaledVector(moveDir, this.speed * dt);
+            this.clampInsideRing();
+            this.playAction('walk', 0.15);
+        } else if (dist <= strikeReach && dist >= backOffDist) {
+            // In striking distance: attack or block
+            if (this.attackCooldown <= 0) {
+                const roll = Math.random();
+                if (roll < 0.65) {
+                    this.executeAttack('light');
+                } else if (roll < 0.85) {
+                    this.executeAttack('heavy');
+                } else {
+                    // Block briefly
+                    this.isBlocking = true;
+                    this.blockTimer = 0.6 + Math.random() * 0.4;
+                    this.playAction('block', 0.12);
+                    this.attackCooldown = 1.0;
+                }
+            } else {
+                this.playAction('idle', 0.15);
+            }
+        } else {
+            // Back off after combos to reset spacing
+            this.aiState = 'retreat';
+            const retreatDir = toPlayer.clone().negate().normalize();
+            this.mesh.position.addScaledVector(retreatDir, (this.speed * 0.85) * dt);
+            this.clampInsideRing();
+            this.playAction('walk', 0.15, 0.9);
+        }
     }
 
-    performAttack() {
-        this.isBlocking = false;
-        const isHeavy = Math.random() < 0.35;
-        this.attackType = isHeavy ? 'heavy' : 'light';
-        const duration = isHeavy ? 0.45 : 0.3;
-        this.triggerAnimation('attack', duration);
-        this.attackCooldown = 1.0 + Math.random() * 0.8;
+    executeAttack(type = 'light') {
+        const isHeavy = type === 'heavy';
+        this.playAction(isHeavy ? 'heavy_punch' : 'light_punch', 0.08);
+        this.attackCooldown = 0.9 + Math.random() * 0.7;
 
         if (this.game.audio) this.game.audio.playWhoosh();
 
-        // Deliver damage at apex of punch
         setTimeout(() => {
-            if (this.isDead || this.animState === 'hit') return;
+            if (this.isDead || ['hit', 'heavy_hit'].includes(this.currentState)) return;
             const player = this.game.player;
             if (player && !player.isDead) {
                 const dist = this.mesh.position.distanceTo(player.mesh.position);
                 if (dist < 2.0) {
-                    const dmg = (this.attackType === 'heavy' ? 18 : 10);
+                    const dmg = isHeavy ? 20 : 12;
                     player.takeDamage(dmg, this);
                 }
             }
-        }, (duration * 0.5) * 1000);
+        }, isHeavy ? 200 : 140);
+    }
+
+    clampInsideRing() {
+        const limit = 6.2;
+        this.mesh.position.x = Math.max(-limit, Math.min(limit, this.mesh.position.x));
+        this.mesh.position.z = Math.max(-limit, Math.min(limit, this.mesh.position.z));
     }
 
     takeDamage(rawDamage, attacker = null) {
@@ -207,19 +220,25 @@ export class Enemy {
         let damage = rawDamage;
         if (this.isBlocking) {
             damage *= 0.3;
-            this.triggerAnimation('block', 0.2);
-            if (this.game.audio) this.game.audio.playHit(0.5);
+            if (this.game.audio) this.game.audio.playBlock();
             if (this.game.cameraShake) this.game.cameraShake(0.15);
+            if (this.game.ui) this.game.ui.showDamageText(this.mesh.position, `BLOCKED -${Math.round(damage)}`, '#ffaa00');
+            this.flashDamage(0x4488ff);
         } else {
             this.health = Math.max(0, this.health - damage);
-            this.triggerAnimation('hit', 0.3);
-            if (this.game.audio) this.game.audio.playHit(1.0);
-            if (this.game.cameraShake) this.game.cameraShake(0.35);
+            const isHeavyHit = damage >= 20;
+            this.playAction(isHeavyHit ? 'heavy_hit' : 'hit', 0.06);
+            if (this.game.audio) this.game.audio.playHit(isHeavyHit ? 1.4 : 1.0);
+            if (this.game.cameraShake) this.game.cameraShake(isHeavyHit ? 0.55 : 0.28);
+            if (this.game.ui) this.game.ui.showDamageText(this.mesh.position, `-${Math.round(damage)}`, '#ff1744');
+            this.flashDamage(0xffffff);
 
             // Knockback
             if (attacker) {
                 const kb = new THREE.Vector3().subVectors(this.mesh.position, attacker.mesh.position).normalize();
-                this.mesh.position.addScaledVector(kb, 0.45);
+                kb.y = 0;
+                this.mesh.position.addScaledVector(kb, isHeavyHit ? 0.7 : 0.4);
+                this.clampInsideRing();
             }
         }
 
@@ -233,65 +252,28 @@ export class Enemy {
         }
     }
 
-    die() {
-        this.isDead = true;
-        this.animState = 'ko';
-        this.animTime = 0;
-        this.animDuration = 1.0;
-        if (this.game.onEnemyDefeated) {
-            this.game.onEnemyDefeated(this);
-        }
+    flashDamage(colorHex = 0xffffff) {
+        if (!this.model) return;
+        this.model.traverse((child) => {
+            if (child.isMesh && child.material) {
+                const originalEmissive = child.material.emissive ? child.material.emissive.getHex() : 0;
+                if (child.material.emissive) {
+                    child.material.emissive.setHex(colorHex);
+                    setTimeout(() => {
+                        if (child.material && child.material.emissive) {
+                            child.material.emissive.setHex(originalEmissive);
+                        }
+                    }, 80);
+                }
+            }
+        });
     }
 
-    updateProceduralAnimation(dt) {
-        this.animTime += dt;
-        this.idleCycle += dt;
-
-        this.visualRoot.position.set(0, 0, 0);
-        this.visualRoot.rotation.set(0, 0, 0);
-
-        const progress = Math.min(1, this.animTime / (this.animDuration || 1));
-
-        switch (this.animState) {
-            case 'idle':
-                this.visualRoot.position.y = Math.sin(this.idleCycle * 2.5) * 0.02;
-                this.visualRoot.rotation.z = Math.sin(this.idleCycle * 1.2) * 0.01;
-                break;
-
-            case 'walk':
-                this.visualRoot.position.y = Math.abs(Math.sin(this.walkCycle * 7)) * 0.06;
-                this.visualRoot.rotation.z = Math.sin(this.walkCycle * 3.5) * 0.04;
-                this.visualRoot.rotation.x = 0.06;
-                break;
-
-            case 'attack': {
-                const strike = Math.sin(progress * Math.PI);
-                this.visualRoot.position.z = -strike * (this.attackType === 'heavy' ? 0.55 : 0.35);
-                this.visualRoot.rotation.y = strike * 0.3;
-                if (progress >= 1) this.animState = 'idle';
-                break;
-            }
-
-            case 'block':
-                this.visualRoot.position.y = -0.06;
-                this.visualRoot.position.z = 0.06;
-                this.visualRoot.rotation.x = -0.06;
-                break;
-
-            case 'hit': {
-                const recoil = Math.sin(progress * Math.PI);
-                this.visualRoot.position.z = recoil * 0.35;
-                this.visualRoot.rotation.x = -recoil * 0.25;
-                if (progress >= 1) this.animState = 'idle';
-                break;
-            }
-
-            case 'ko': {
-                const fall = Math.min(1, this.animTime * 2);
-                this.visualRoot.position.y = (1 - fall) * 0.9 + 0.15;
-                this.visualRoot.rotation.x = -fall * (Math.PI / 2);
-                break;
-            }
+    die() {
+        this.isDead = true;
+        this.playAction('ko', 0.1);
+        if (this.game.onEnemyDefeated) {
+            this.game.onEnemyDefeated(this);
         }
     }
 }

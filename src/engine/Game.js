@@ -14,11 +14,12 @@ import { GameLoop } from '../gameLoop.js';
 export class Game {
     constructor() {
         this.scene = new THREE.Scene();
-        this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        this.camera = new THREE.PerspectiveCamera(58, window.innerWidth / window.innerHeight, 0.1, 1000);
         this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
         document.body.appendChild(this.renderer.domElement);
 
         this.ui = new UIManager();
+        this.ui.setGame(this);
         this.input = new Input(this);
         this.audio = new SoundEngine();
 
@@ -41,10 +42,10 @@ export class Game {
         this.debugHelpers.visible = false;
         this.scene.add(this.debugHelpers);
 
-        // Camera follow & shake state
+        // Raised 3/4 fight camera state
         this.shakeIntensity = 0;
-        this.cameraLookTarget = new THREE.Vector3();
-        this.currentCamPos = new THREE.Vector3(0, 2.2, 5.8);
+        this.cameraLookTarget = new THREE.Vector3(0, 1.25, 0);
+        this.currentCamPos = new THREE.Vector3(2.8, 2.2, 4.2);
 
         // GameLoop integration
         this.gameLoop = new GameLoop(
@@ -54,9 +55,9 @@ export class Game {
     }
 
     init() {
-        // Atmospheric fog & lighting
-        this.scene.background = new THREE.Color(0x07070a);
-        this.scene.fog = new THREE.FogExp2(0x07070a, 0.04);
+        // Atmospheric fog & background
+        this.scene.background = new THREE.Color(0x0a0a0e);
+        this.scene.fog = new THREE.FogExp2(0x0a0a0e, 0.038);
 
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -69,9 +70,9 @@ export class Game {
         // Spawn iconic soap prop
         this.loadSoap();
 
-        // Initialize Player inside ring facing opponent (Math.PI)
+        // Initialize Player inside ring facing north (Math.PI)
         this.player = new Player(this);
-        this.player.mesh.position.set(0, 0, 2.2);
+        this.player.mesh.position.set(-0.8, 0, 1.8);
         this.player.mesh.rotation.y = Math.PI;
         this.entities.push(this.player);
         this.scene.add(this.player.mesh);
@@ -81,10 +82,10 @@ export class Game {
         this.debugHelpers.add(this.playerBoxHelper);
 
         // Spawn Primary Opponent across the ring
-        this.spawnEnemy(new THREE.Vector3(0, 0, -2.5));
+        this.spawnEnemy(new THREE.Vector3(0.8, 0, -1.8));
 
-        // Initial camera placement
-        this.camera.position.set(0, 2.2, 5.8);
+        // Initial camera setup
+        this.camera.position.set(2.8, 2.2, 4.2);
         this.camera.lookAt(0, 1.2, 0);
 
         // Setup Modals & Mobile Touch listeners
@@ -148,9 +149,9 @@ export class Game {
     }
 
     loadSoap() {
-        this.assetLoader.loadModel('/models/soap.glb', 0.4)
+        this.assetLoader.loadAnimatedModel('/models/soap.glb', 0.4)
             .then((soapScene) => {
-                this.soap = soapScene;
+                this.soap = soapScene.wrapper;
                 this.soap.position.set(5.5, 0.35, -5.5);
                 this.scene.add(this.soap);
             })
@@ -195,8 +196,8 @@ export class Game {
             this.player.health = this.player.stats[this.player.currentMode].maxHealth;
             this.player.stamina = this.player.stats[this.player.currentMode].maxStamina;
             this.player.isDead = false;
-            this.player.animState = 'idle';
-            this.player.mesh.position.set(0, 0, 2.2);
+            this.player.playAction('idle', 0.1);
+            this.player.mesh.position.set(-0.8, 0, 1.8);
             this.player.mesh.rotation.y = Math.PI;
         }
 
@@ -213,7 +214,7 @@ export class Game {
             if (idx !== -1) this.entities.splice(idx, 1);
         }
         this.enemies = [];
-        this.spawnEnemy(new THREE.Vector3(0, 0, -2.5));
+        this.spawnEnemy(new THREE.Vector3(0.8, 0, -1.8));
 
         this.ui.updatePlayerStats(1, 1, 1);
         this.ui.updateEnemyHealth(1);
@@ -226,7 +227,7 @@ export class Game {
         this.ui.showToast(`DEBUG HITBOXES: ${this.debugMode ? 'ENABLED [ON]' : 'DISABLED [OFF]'}`);
     }
 
-    triggerHitStop(duration = 0.05) {
+    triggerHitStop(duration = 0.07) {
         this.gameLoop.triggerHitStop(duration);
     }
 
@@ -265,7 +266,7 @@ export class Game {
             this.soap.position.y = 0.35 + Math.sin(performance.now() * 0.0025) * 0.08;
         }
 
-        // Update camera position
+        // Update raised 3/4 fight camera
         this.updateCamera(dt);
 
         // Flush input keys
@@ -286,29 +287,35 @@ export class Game {
         let lookTarget;
 
         if (enemy) {
-            // Dynamic Fight Framing: Position camera over player's shoulder facing the opponent
+            // Raised 3/4 angle fight camera: frames both fighters without either blocking the other
             const toEnemy = new THREE.Vector3().subVectors(enemy.mesh.position, playerPos);
             toEnemy.y = 0;
             const dist = toEnemy.length();
             toEnemy.normalize();
 
-            // Right vector for over-the-shoulder offset
-            const right = new THREE.Vector3(-toEnemy.z, 0, toEnemy.x);
+            // Perpendicular horizontal side vector
+            const side = new THREE.Vector3(-toEnemy.z, 0, toEnemy.x).normalize();
 
-            const camDist = Math.max(3.0, Math.min(4.8, 2.4 + dist * 0.35));
-            targetCamPos = playerPos.clone()
-                .addScaledVector(toEnemy, -camDist)
-                .addScaledVector(right, 0.7)
-                .add(new THREE.Vector3(0, 1.9, 0));
-
+            // Midpoint between combatants
             const midPoint = new THREE.Vector3().addVectors(playerPos, enemy.mesh.position).multiplyScalar(0.5);
-            lookTarget = midPoint.add(new THREE.Vector3(0, 1.35, 0));
+
+            // Position camera offset to the right/side (2.6 units) and pulled back (3.4 to 4.8 units)
+            const zoomDist = Math.max(3.4, Math.min(5.2, 2.8 + dist * 0.35));
+            const camHeight = 2.05 + dist * 0.08;
+
+            targetCamPos = midPoint.clone()
+                .addScaledVector(side, 2.5)
+                .addScaledVector(toEnemy, -zoomDist * 0.6)
+                .add(new THREE.Vector3(0, camHeight, zoomDist * 0.7));
+
+            // Focus at chest level of midpoint
+            lookTarget = midPoint.clone().add(new THREE.Vector3(0, 1.25, 0));
         } else {
-            // Default over-the-shoulder follow
+            // Default cinematic follow
             const playerRotY = this.player.mesh.rotation.y;
-            const camOffset = new THREE.Vector3(0.6, 1.9, 3.6).applyAxisAngle(new THREE.Vector3(0, 1, 0), playerRotY);
+            const camOffset = new THREE.Vector3(1.8, 2.1, 3.8).applyAxisAngle(new THREE.Vector3(0, 1, 0), playerRotY);
             targetCamPos = playerPos.clone().add(camOffset);
-            lookTarget = playerPos.clone().add(new THREE.Vector3(0, 1.35, 0));
+            lookTarget = playerPos.clone().add(new THREE.Vector3(0, 1.25, 0));
         }
 
         // Apply camera shake
@@ -316,12 +323,12 @@ export class Game {
             targetCamPos.x += (Math.random() - 0.5) * this.shakeIntensity;
             targetCamPos.y += (Math.random() - 0.5) * this.shakeIntensity;
             targetCamPos.z += (Math.random() - 0.5) * this.shakeIntensity;
-            this.shakeIntensity = Math.max(0, this.shakeIntensity - 3.0 * dt);
+            this.shakeIntensity = Math.max(0, this.shakeIntensity - 3.2 * dt);
         }
 
         // Smooth camera damping
-        this.currentCamPos.lerp(targetCamPos, 7.5 * dt);
-        this.cameraLookTarget.lerp(lookTarget, 9.0 * dt);
+        this.currentCamPos.lerp(targetCamPos, 7.0 * dt);
+        this.cameraLookTarget.lerp(lookTarget, 8.5 * dt);
 
         this.camera.position.copy(this.currentCamPos);
         this.camera.lookAt(this.cameraLookTarget);

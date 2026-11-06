@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 
 /**
- * CombatSystem: Hit detection, hit-stop frame freeze, knockback,
- * and damage routing between entities.
+ * CombatSystem: Range & directional hit detection, 60-80ms hit-stop impact freezes,
+ * knockback calculation, and particle spark routing.
  */
 export class CombatSystem {
     constructor(game) {
@@ -15,9 +15,9 @@ export class CombatSystem {
         if (!targets) return;
 
         const isHeavy = attackType === 'heavy';
-        const reach = isHeavy ? 2.2 : 1.8;
-        const basePower = attacker.stats ? attacker.stats[attacker.currentMode].attackPower : 12;
-        const damage = isHeavy ? basePower * 1.7 : basePower;
+        const reach = isHeavy ? 2.3 : 1.9;
+        const basePower = attacker.stats ? attacker.stats[attacker.currentMode].attackPower : 14;
+        const damage = isHeavy ? basePower * 1.75 : basePower;
 
         const attackerPos = attacker.mesh.position;
         const attackerDir = new THREE.Vector3();
@@ -32,10 +32,10 @@ export class CombatSystem {
             const dist = toTarget.length();
 
             if (dist <= reach) {
-                // Check if target is in front of attacker (cone within ~100 degrees)
                 toTarget.normalize();
                 const dot = attackerDir.dot(toTarget);
-                if (dot > 0.1 || dist < 1.0) {
+                // Within striking frontal cone (within ~110 degrees) or close grapple
+                if (dot > 0.05 || dist < 1.1) {
                     this.executeHit(attacker, target, damage, isHeavy);
                     break;
                 }
@@ -44,25 +44,26 @@ export class CombatSystem {
     }
 
     executeHit(attacker, target, damage, isHeavy = false) {
-        // Hit-stop effect (short pause for visual punch impact)
+        // 60-80 ms Hit-stop impact freeze frame
+        const hitStopDuration = isHeavy ? 0.08 : 0.065;
         if (this.game.triggerHitStop) {
-            this.game.triggerHitStop(isHeavy ? 0.08 : 0.04);
+            this.game.triggerHitStop(hitStopDuration);
         }
 
-        // Damage target
+        // Damage target (handles guard mitigation, stamina drain, and knockback)
         if (target.takeDamage) {
             target.takeDamage(damage, attacker);
         }
 
-        // Screen shake
+        // Dynamic camera trauma
         if (this.game.cameraShake) {
-            this.game.cameraShake(isHeavy ? 0.5 : 0.25);
+            this.game.cameraShake(isHeavy ? 0.55 : 0.28);
         }
 
-        // Particle sparks / hit flash
+        // Hit sparks
         if (this.game.effects) {
-            const hitPos = target.mesh.position.clone().add(new THREE.Vector3(0, 1.2, 0));
-            this.game.effects.spawnHitSparks(hitPos, isHeavy ? 0xff3e3e : 0xffffff);
+            const hitPos = target.mesh.position.clone().add(new THREE.Vector3(0, 1.3, 0));
+            this.game.effects.spawnHitSparks(hitPos, isHeavy ? 0xff2244 : 0xffffff);
         }
     }
 }
