@@ -59,19 +59,16 @@ export class Enemy {
 
     async loadModel() {
         try {
-            const data = await this.assetLoader.loadAnimatedModel('/models/fighter.glb', 1.8);
+            const data = await this.assetLoader.loadAnimatedModel('/models/fighter.glb', 1.88, 'brawler');
             this.model = data.model;
             this.mixer = data.mixer;
             this.actions = data.actions;
 
-            // Apply underground brawler theme
-            this.assetLoader.applyTheme(this.model, 'brawler');
-
             // Finished listener
             this.mixer.addEventListener('finished', (e) => {
                 if (this.isDead) return;
-                if (['light_punch', 'heavy_punch', 'hit', 'heavy_hit'].includes(this.currentState)) {
-                    this.playAction('idle', 0.15);
+                if (['light_punch', 'heavy_punch', 'jab', 'cross', 'hook', 'hit', 'heavy_hit', 'hit_light', 'hit_heavy', 'stagger', 'taunt'].includes(this.currentState)) {
+                    this.playAction('boxing_idle', 0.15);
                 }
             });
 
@@ -81,7 +78,7 @@ export class Enemy {
             }
             this.visualRoot.add(data.wrapper);
 
-            this.playAction('idle', 0.1);
+            this.playAction('boxing_idle', 0.1);
         } catch (err) {
             console.warn('[Enemy] Failed to load animated model, keeping capsule fallback:', err);
         }
@@ -159,12 +156,12 @@ export class Enemy {
         const backOffDist = 0.95;
 
         if (dist > strikeReach) {
-            // Approach player to strike range
+            // Approach player to strike range (foot-sliding prevention via matched stride scale)
             this.aiState = 'approach';
             const moveDir = toPlayer.clone().normalize();
             this.mesh.position.addScaledVector(moveDir, this.speed * dt);
             this.clampInsideRing();
-            this.playAction('walk', 0.15);
+            this.playAction('walk', 0.15, this.speed / 2.6);
         } else if (dist <= strikeReach && dist >= backOffDist) {
             // In striking distance (~1.5 units): attack or block
             if (this.attackCooldown <= 0) {
@@ -181,7 +178,7 @@ export class Enemy {
                     this.attackCooldown = 1.0;
                 }
             } else {
-                this.playAction('idle', 0.15);
+                this.playAction('boxing_idle', 0.15);
             }
         } else {
             // Back off after combos to reset spacing
@@ -189,19 +186,24 @@ export class Enemy {
             const retreatDir = toPlayer.clone().negate().normalize();
             this.mesh.position.addScaledVector(retreatDir, (this.speed * 0.85) * dt);
             this.clampInsideRing();
-            this.playAction('walk', 0.15, 0.9);
+            this.playAction('walk', 0.15, (this.speed * 0.85) / 2.6);
         }
     }
 
     executeAttack(type = 'light') {
         const isHeavy = type === 'heavy';
-        this.playAction(isHeavy ? 'heavy_punch' : 'light_punch', 0.08);
-        this.attackCooldown = 0.9 + Math.random() * 0.7;
+        if (!this.comboCounter) this.comboCounter = 0;
+        this.comboCounter++;
+
+        // Mix jab, cross, and heavy hook swings
+        const actionName = isHeavy ? 'hook' : ((this.comboCounter % 2 === 1) ? 'jab' : 'cross');
+        this.playAction(actionName, 0.08);
+        this.attackCooldown = 0.85 + Math.random() * 0.65;
 
         if (this.game.audio) this.game.audio.playWhoosh();
 
         setTimeout(() => {
-            if (this.isDead || ['hit', 'heavy_hit'].includes(this.currentState)) return;
+            if (this.isDead || ['hit', 'heavy_hit', 'hit_light', 'hit_heavy'].includes(this.currentState)) return;
             const player = this.game.player;
             if (player && !player.isDead) {
                 const dist = this.mesh.position.distanceTo(player.mesh.position);
@@ -232,7 +234,7 @@ export class Enemy {
         } else {
             this.health = Math.max(0, this.health - damage);
             const isHeavyHit = damage >= 20;
-            this.playAction(isHeavyHit ? 'heavy_hit' : 'hit', 0.06);
+            this.playAction(isHeavyHit ? 'hit_heavy' : 'hit_light', 0.06);
             if (this.game.audio) this.game.audio.playHit(isHeavyHit ? 1.4 : 1.0);
             if (this.game.cameraShake) this.game.cameraShake(isHeavyHit ? 0.55 : 0.28);
             if (this.game.ui) this.game.ui.showDamageText(this.mesh.position, `-${Math.round(damage)}`, '#ff1744');

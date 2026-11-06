@@ -1,16 +1,102 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { clone as cloneSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.js';
+
+/**
+ * Creates an organic tattoo texture for the underground Brawler.
+ */
+function createTattooTexture() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 512;
+    const ctx = canvas.getContext('2d');
+
+    // Weathered athletic bruised skin base
+    ctx.fillStyle = '#9e5a48';
+    ctx.fillRect(0, 0, 512, 512);
+
+    // Tribal / Underground Fight Tattoos in dark oxidized ink
+    ctx.strokeStyle = 'rgba(20, 20, 28, 0.72)';
+    ctx.lineWidth = 6;
+    ctx.lineCap = 'round';
+
+    for (let i = 0; i < 10; i++) {
+        ctx.beginPath();
+        const y = 60 + i * 36;
+        ctx.moveTo(30, y);
+        ctx.bezierCurveTo(160, y - 28, 280, y + 35, 480, y);
+        ctx.stroke();
+    }
+
+    // Heavy black sleeve bands
+    ctx.fillStyle = 'rgba(16, 16, 22, 0.75)';
+    ctx.fillRect(25, 260, 462, 30);
+    ctx.fillRect(50, 320, 412, 18);
+    ctx.fillRect(90, 365, 332, 14);
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    return tex;
+}
+
+/**
+ * Creates dynamic blood and bruise decal texture for Narrator.
+ */
+function createBloodDecalTexture() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 256;
+    const ctx = canvas.getContext('2d');
+
+    // Transparent background
+    ctx.clearRect(0, 0, 256, 256);
+
+    // Blood splatters & deep purple contusions
+    ctx.fillStyle = 'rgba(140, 10, 25, 0.85)';
+    ctx.beginPath();
+    ctx.arc(128, 80, 24, 0, Math.PI * 2);
+    ctx.arc(160, 130, 16, 0, Math.PI * 2);
+    ctx.arc(90, 150, 20, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Drips
+    ctx.strokeStyle = 'rgba(120, 8, 20, 0.85)';
+    ctx.lineWidth = 5;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(128, 80);
+    ctx.lineTo(128, 170);
+    ctx.moveTo(160, 130);
+    ctx.lineTo(164, 210);
+    ctx.stroke();
+
+    // Bruise shadow (purple/blue)
+    const grad = ctx.createRadialGradient(85, 75, 4, 85, 75, 38);
+    grad.addColorStop(0, 'rgba(40, 15, 60, 0.75)');
+    grad.addColorStop(0.6, 'rgba(90, 20, 40, 0.45)');
+    grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(85, 75, 38, 0, Math.PI * 2);
+    ctx.fill();
+
+    const tex = new THREE.CanvasTexture(canvas);
+    return tex;
+}
 
 /**
  * AssetLoader handles loading rigged, animated humanoid GLTF/GLB models,
  * bounding-box normalization to 1.8 units, grounding feet at y=0,
- * setting up AnimationMixers, and material theming for fighters.
+ * cloning skeletons via SkeletonUtils for multiple independent fighters,
+ * building accessories (Narrator tie/shirt, Tyler shades/jacket, Brawler tattoos),
+ * and mapping the full combat animation state machine.
  */
 export class AssetLoader {
     constructor(onProgress = null) {
         this.loadingManager = new THREE.LoadingManager();
         this.loader = new GLTFLoader(this.loadingManager);
-        this.cache = new Map();
+        this.cachedGltf = null;
         this.onProgress = onProgress;
 
         if (onProgress) {
@@ -22,22 +108,39 @@ export class AssetLoader {
     }
 
     /**
-     * Loads a rigged humanoid model with AnimationMixer and mapped combat actions.
-     * @param {string} url 
-     * @param {number} targetHeight 
-     * @returns {Promise<{ scene: THREE.Group, model: THREE.Group, mixer: THREE.AnimationMixer, actions: Object, animations: Array }>}
+     * Resolves a clean Vite/Vercel safe asset path.
      */
-    async loadAnimatedModel(url, targetHeight = 1.8) {
+    resolveAssetPath(path) {
+        const base = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.BASE_URL) || '/';
+        const cleanBase = base.endsWith('/') ? base : base + '/';
+        const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+        return cleanBase + cleanPath;
+    }
+
+    /**
+     * Loads the base humanoid rigged GLTF model once and caches it.
+     */
+    async loadBaseModel(url = '/models/fighter.glb') {
+        if (this.cachedGltf) {
+            return this.cachedGltf;
+        }
+
+        const safeUrl = this.resolveAssetPath(url);
+
         return new Promise((resolve, reject) => {
             this.loader.load(
-                url,
+                safeUrl,
                 (gltf) => {
-                    const setup = this.processAnimatedModel(gltf, targetHeight);
-                    resolve(setup);
+                    this.cachedGltf = gltf;
+                    resolve(gltf);
                 },
-                undefined,
+                (xhr) => {
+                    if (this.onProgress && xhr.total > 0) {
+                        this.onProgress((xhr.loaded / xhr.total) * 100, safeUrl);
+                    }
+                },
                 (error) => {
-                    console.warn(`[AssetLoader] Failed to load model at "${url}":`, error);
+                    console.warn(`[AssetLoader] Failed to load model at "${safeUrl}":`, error);
                     reject(error);
                 }
             );
@@ -45,13 +148,25 @@ export class AssetLoader {
     }
 
     /**
-     * Processes a loaded GLTF with skeleton, skinned meshes, animations, and scaling.
+     * Instantiates an independent rigged humanoid fighter using SkeletonUtils.clone.
+     * @param {string} theme 'narrator' | 'tyler' | 'brawler'
+     * @param {number} targetHeight Height in units (default 1.8)
      */
-    processAnimatedModel(gltf, targetHeight = 1.8) {
-        const rawScene = gltf.scene;
+    async loadAnimatedModel(url = '/models/fighter.glb', targetHeight = 1.8, theme = 'narrator') {
+        const gltf = await this.loadBaseModel(url);
+        return this.createFighterInstance(gltf, targetHeight, theme);
+    }
 
-        // Hide any attached weapons (e.g. Sword mesh in cyberpunk pack)
-        rawScene.traverse((child) => {
+    /**
+     * Clones skeleton and skinned meshes, normalizes scale, grounds feet,
+     * attaches human accessories, and configures AnimationMixer.
+     */
+    createFighterInstance(gltf, targetHeight = 1.8, theme = 'narrator') {
+        // Clone full skinned mesh hierarchy with bound skeleton bones
+        const clonedScene = cloneSkeleton(gltf.scene);
+
+        // Hide attached weapons (cyberpunk blade)
+        clonedScene.traverse((child) => {
             if (child.name && (child.name.toLowerCase().includes('sword') || child.name === 'Sword')) {
                 child.visible = false;
             }
@@ -61,38 +176,41 @@ export class AssetLoader {
                 if (child.material) {
                     child.material = child.material.clone();
                     child.material.side = THREE.DoubleSide;
-                    if (child.material.roughness !== undefined) {
-                        child.material.roughness = Math.min(child.material.roughness, 0.65);
-                    }
                 }
             }
         });
 
-        // Compute bounding box in rest pose
-        rawScene.updateMatrixWorld(true);
-        const box = new THREE.Box3().setFromObject(rawScene);
+        // Compute rest bounding box
+        clonedScene.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(clonedScene);
         const size = box.getSize(new THREE.Vector3());
         const center = box.getCenter(new THREE.Vector3());
 
-        // Scale to targetHeight (1.8 units tall)
-        const scale = size.y > 0.0001 ? targetHeight / size.y : 1;
-        rawScene.scale.setScalar(scale);
+        // Target height normalization (Brawler is slightly bulkier at 1.9)
+        const adjustedHeight = theme === 'brawler' ? targetHeight * 1.06 : targetHeight;
+        const scale = size.y > 0.0001 ? adjustedHeight / size.y : 1;
+        clonedScene.scale.setScalar(scale);
 
-        // Center on X/Z and ground feet at Y = 0
-        rawScene.position.x = -center.x * scale;
-        rawScene.position.y = -box.min.y * scale;
-        rawScene.position.z = -center.z * scale;
+        // Center on X/Z and ground feet precisely on the ring floor at Y = 0
+        clonedScene.position.x = -center.x * scale;
+        clonedScene.position.y = -box.min.y * scale;
+        clonedScene.position.z = -center.z * scale;
 
         // Container wrapper
         const wrapper = new THREE.Group();
-        wrapper.name = 'AnimatedModelWrapper';
-        wrapper.add(rawScene);
+        wrapper.name = `HumanoidFighter_${theme}`;
+        wrapper.add(clonedScene);
 
-        // Setup AnimationMixer
-        const mixer = new THREE.AnimationMixer(rawScene);
+        // Build human accessories (hair, loosened tie, sunglasses, tattoos, blood decals)
+        const accessoryData = this.buildHumanAccessories(clonedScene, theme);
+
+        // Apply realistic materials
+        this.applyTheme(clonedScene, theme);
+
+        // Setup AnimationMixer on cloned scene
+        const mixer = new THREE.AnimationMixer(clonedScene);
         const actions = {};
 
-        // Helper to find clip by fuzzy name
         const findClip = (patterns) => {
             for (const pattern of patterns) {
                 const found = gltf.animations.find(a => 
@@ -103,25 +221,32 @@ export class AssetLoader {
             return null;
         };
 
+        // Complete 16-state Fight Club animation map
         const clipMap = {
-            idle: ['Idle_Sword', 'Idle_Neutral', 'Idle', 'idle'],
+            boxing_idle: ['Idle_Sword', 'Idle_Neutral', 'Idle'],
+            idle: ['Idle_Sword', 'Idle_Neutral', 'Idle'],
             walk: ['Walk', 'walk', 'Walking'],
             run: ['Run', 'run'],
-            light_punch: ['Punch_Left', 'Punch', 'punch'],
-            heavy_punch: ['Punch_Right', 'Punch_Heavy', 'Punch'],
-            kick: ['Kick_Left', 'Kick_Right', 'Kick'],
+            jab: ['Punch_Left', 'Punch'],
+            cross: ['Punch_Right', 'Punch_Heavy', 'Punch'],
+            hook: ['Sword_Slash', 'Punch_Right', 'Punch'],
             block: ['Interact', 'Duck', 'block'],
             dodge: ['Roll', 'roll', 'Dodge'],
-            hit: ['HitRecieve', 'HitReact', 'hit'],
-            heavy_hit: ['HitRecieve_2', 'HitRecieve', 'hit'],
-            ko: ['Death', 'death', 'KO', 'ko']
+            hit_light: ['HitRecieve', 'HitReact', 'hit'],
+            hit_heavy: ['HitRecieve_2', 'HitRecieve'],
+            stagger: ['HitRecieve_2', 'HitRecieve'],
+            knockdown: ['Death', 'death', 'KO'],
+            get_up: ['Roll', 'Interact'],
+            ko: ['Death', 'death', 'KO'],
+            taunt: ['Wave', 'Interact'],
+            pained_laugh: ['Interact', 'Wave']
         };
 
         for (const [actionName, patterns] of Object.entries(clipMap)) {
             const clip = findClip(patterns);
             if (clip) {
                 const action = mixer.clipAction(clip);
-                if (['idle', 'walk', 'run', 'block'].includes(actionName)) {
+                if (['boxing_idle', 'idle', 'walk', 'run', 'block'].includes(actionName)) {
                     action.loop = THREE.LoopRepeat;
                 } else {
                     action.loop = THREE.LoopOnce;
@@ -131,67 +256,207 @@ export class AssetLoader {
             }
         }
 
+        // Backward-compatible aliases for existing combat code
+        actions.light_punch = actions.jab || actions.idle;
+        actions.heavy_punch = actions.cross || actions.idle;
+        actions.hit = actions.hit_light || actions.idle;
+        actions.heavy_hit = actions.hit_heavy || actions.idle;
+
         return {
             wrapper,
-            model: rawScene,
+            model: clonedScene,
             mixer,
             actions,
             animations: gltf.animations,
-            box: { size, center, scale }
+            box: { size, center, scale },
+            accessoryData
         };
+    }
+
+    /**
+     * Builds realistic human anatomical accessories attached directly to skeleton bones.
+     */
+    buildHumanAccessories(clonedScene, theme) {
+        const headBone = clonedScene.getObjectByName('Head');
+        const neckBone = clonedScene.getObjectByName('Neck');
+        const chestBone = clonedScene.getObjectByName('Chest');
+        const data = { bloodDecal: null, tieMesh: null, glassesMesh: null };
+
+        if (theme === 'narrator' || theme === 'rational') {
+            // 1. Narrator Short Parted Hair
+            if (headBone) {
+                const hairGeo = new THREE.SphereGeometry(0.19, 12, 10);
+                hairGeo.scale(1.05, 0.85, 1.15);
+                const hairMat = new THREE.MeshStandardMaterial({
+                    color: 0x221812, // Dark brown hair
+                    roughness: 0.9,
+                    metalness: 0.05
+                });
+                const hair = new THREE.Mesh(hairGeo, hairMat);
+                hair.position.set(0, 0.12, -0.02);
+                headBone.add(hair);
+
+                // Narrator Bruised Face Decal
+                const decalGeo = new THREE.PlaneGeometry(0.24, 0.24);
+                const decalMat = new THREE.MeshBasicMaterial({
+                    map: createBloodDecalTexture(),
+                    transparent: true,
+                    opacity: 0.0, // starts clean, builds up on damage
+                    depthWrite: false
+                });
+                const bloodDecal = new THREE.Mesh(decalGeo, decalMat);
+                bloodDecal.position.set(0, 0.05, 0.18);
+                headBone.add(bloodDecal);
+                data.bloodDecal = bloodDecal;
+            }
+
+            // 2. Office Shirt Loosened Tie
+            if (neckBone || chestBone) {
+                const parentBone = neckBone || chestBone;
+                const tieGroup = new THREE.Group();
+
+                // Unbuttoned collar band
+                const collarGeo = new THREE.TorusGeometry(0.12, 0.025, 8, 16);
+                const collarMat = new THREE.MeshStandardMaterial({ color: 0xeeeff4, roughness: 0.8 });
+                const collar = new THREE.Mesh(collarGeo, collarMat);
+                collar.rotation.x = Math.PI / 2;
+                tieGroup.add(collar);
+
+                // Loosened silk necktie
+                const tieGeo = new THREE.BoxGeometry(0.065, 0.42, 0.02);
+                const tieMat = new THREE.MeshStandardMaterial({
+                    color: 0x182033, // Navy blue office tie
+                    roughness: 0.55
+                });
+                const tie = new THREE.Mesh(tieGeo, tieMat);
+                tie.position.set(0, -0.22, 0.12);
+                tie.rotation.x = 0.15; // hangs slightly forward
+                tieGroup.add(tie);
+
+                parentBone.add(tieGroup);
+                data.tieMesh = tieGroup;
+            }
+        } else if (theme === 'tyler') {
+            // 1. Tyler Spiky Blonde/Red Hair
+            if (headBone) {
+                const hairGeo = new THREE.DodecahedronGeometry(0.20, 1);
+                hairGeo.scale(1.1, 0.95, 1.2);
+                const hairMat = new THREE.MeshStandardMaterial({
+                    color: 0x8a5526, // Dirty blonde / messy reddish hair
+                    roughness: 0.85
+                });
+                const hair = new THREE.Mesh(hairGeo, hairMat);
+                hair.position.set(0, 0.13, -0.02);
+                headBone.add(hair);
+
+                // 2. Tyler Red Aviator Sunglasses
+                const glassesGroup = new THREE.Group();
+                const frameGeo = new THREE.BoxGeometry(0.26, 0.07, 0.05);
+                const frameMat = new THREE.MeshStandardMaterial({
+                    color: 0xd4af37, // Gold wireframe
+                    metalness: 0.9,
+                    roughness: 0.2
+                });
+                const frame = new THREE.Mesh(frameGeo, frameMat);
+                glassesGroup.add(frame);
+
+                const lensGeo = new THREE.BoxGeometry(0.10, 0.06, 0.02);
+                const lensMat = new THREE.MeshStandardMaterial({
+                    color: 0xff0033, // Iconic Fight Club red-tinted lenses
+                    roughness: 0.1,
+                    metalness: 0.1,
+                    transparent: true,
+                    opacity: 0.85
+                });
+                const leftLens = new THREE.Mesh(lensGeo, lensMat);
+                leftLens.position.set(-0.065, 0, 0.02);
+                const rightLens = new THREE.Mesh(lensGeo, lensMat);
+                rightLens.position.set(0.065, 0, 0.02);
+                glassesGroup.add(leftLens);
+                glassesGroup.add(rightLens);
+
+                glassesGroup.position.set(0, 0.07, 0.18);
+                headBone.add(glassesGroup);
+                data.glassesMesh = glassesGroup;
+            }
+        } else if (theme === 'brawler') {
+            // Brawler: Bald head with prominent scarred brow
+            if (headBone) {
+                const browGeo = new THREE.BoxGeometry(0.24, 0.05, 0.08);
+                const browMat = new THREE.MeshStandardMaterial({ color: 0x9e5a48, roughness: 0.65 });
+                const brow = new THREE.Mesh(browGeo, browMat);
+                brow.position.set(0, 0.09, 0.15);
+                headBone.add(brow);
+            }
+        }
+
+        return data;
     }
 
     /**
      * Applies character theme materials (Narrator, Tyler, or Brawler).
      */
-    applyTheme(model, theme = 'rational') {
+    applyTheme(model, theme = 'narrator') {
+        const tattooTex = theme === 'brawler' ? createTattooTexture() : null;
+
         model.traverse((child) => {
             if (child.isMesh && child.material) {
-                const mat = child.material.clone();
-                child.material = mat;
+                const mat = new THREE.MeshStandardMaterial();
+                mat.side = THREE.DoubleSide;
 
-                if (theme === 'rational' || theme === 'narrator') {
-                    // Player Rational: Sharp Cyan & Slate palette
+                if (theme === 'narrator' || theme === 'rational') {
+                    // Narrator: White office shirt, rolled-up sleeves, dark slacks
                     if (child.name.includes('007') || child.name.includes('Body')) {
-                        mat.color.setHex(0xd4e2f4); // light athletic shirt
-                        mat.emissive.setHex(0x003344);
-                        mat.emissiveIntensity = 0.25;
+                        // Shirt torso & upper arms
+                        mat.color.setHex(0xf4f5f8);
+                        mat.roughness = 0.82;
+                        mat.metalness = 0.04;
                     } else if (child.name.includes('009') || child.name.includes('Pants') || child.name.includes('Legs')) {
-                        mat.color.setHex(0x1a2432); // dark slate pants
+                        // Dark office slacks
+                        mat.color.setHex(0x1f232b);
+                        mat.roughness = 0.88;
+                        mat.metalness = 0.02;
                     } else {
-                        // Cyan wrist/hand wraps accent
-                        mat.color.setHex(0x00d4ff);
-                        mat.emissive.setHex(0x006688);
-                        mat.emissiveIntensity = 0.4;
+                        // Exposed forearm / knuckle skin
+                        mat.color.setHex(0xdeb098);
+                        mat.roughness = 0.68;
                     }
                 } else if (theme === 'tyler') {
-                    // Player Tyler: High-voltage Orange / Red leather jacket & gold trim
+                    // Tyler: Red leather jacket, black slacks, gold accents
                     if (child.name.includes('007') || child.name.includes('Body')) {
-                        mat.color.setHex(0xff3d00); // fiery orange/red jacket
-                        mat.emissive.setHex(0x661100);
-                        mat.emissiveIntensity = 0.35;
+                        mat.color.setHex(0xb81622); // Red leather jacket
+                        mat.roughness = 0.38;
+                        mat.metalness = 0.12;
                     } else if (child.name.includes('009') || child.name.includes('Pants')) {
-                        mat.color.setHex(0x15151a); // black combat pants
+                        mat.color.setHex(0x111115); // Black tailored trousers
+                        mat.roughness = 0.75;
                     } else {
                         // Gold/amber knuckle & wrist wraps
                         mat.color.setHex(0xffab00);
-                        mat.emissive.setHex(0x884400);
-                        mat.emissiveIntensity = 0.5;
+                        mat.emissive.setHex(0x664400);
+                        mat.emissiveIntensity = 0.35;
+                        mat.roughness = 0.55;
                     }
                 } else if (theme === 'brawler') {
-                    // Enemy Brawler: Bruised athletic tone with vivid Crimson / Blood-Red wraps & shorts
+                    // Brawler: Heavily tattooed athletic bare torso, dark fight trunks, crimson wraps
                     if (child.name.includes('007') || child.name.includes('Body')) {
-                        mat.color.setHex(0x945448); // warm athletic skin tone (highly readable)
-                        mat.roughness = 0.6;
+                        mat.map = tattooTex;
+                        mat.color.setHex(0xffffff);
+                        mat.roughness = 0.62;
+                        mat.metalness = 0.05;
                     } else if (child.name.includes('009') || child.name.includes('Pants')) {
-                        mat.color.setHex(0x281920); // dark combat trunks
+                        mat.color.setHex(0x1e1d24); // Dark combat trunks
+                        mat.roughness = 0.85;
                     } else {
-                        // Vivid Crimson / Blood-Red knuckle and ankle accents
-                        mat.color.setHex(0xff1744);
-                        mat.emissive.setHex(0x880018);
-                        mat.emissiveIntensity = 0.45;
+                        // Blood-red heavy hand wraps
+                        mat.color.setHex(0xa81424);
+                        mat.emissive.setHex(0x550810);
+                        mat.emissiveIntensity = 0.35;
+                        mat.roughness = 0.7;
                     }
                 }
+
+                child.material = mat;
             }
         });
     }

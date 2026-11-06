@@ -56,37 +56,49 @@ export class Player {
         this.loadModel();
     }
 
-    async loadModel() {
+    async loadModel(mode = this.currentMode) {
         try {
-            const data = await this.assetLoader.loadAnimatedModel('/models/fighter.glb', 1.8);
+            const data = await this.assetLoader.loadAnimatedModel('/models/fighter.glb', 1.8, mode);
             this.modelSetup = data;
             this.model = data.model;
             this.mixer = data.mixer;
             this.actions = data.actions;
+            this.accessoryData = data.accessoryData;
 
-            // Apply starting theme
-            this.assetLoader.applyTheme(this.model, this.currentMode);
-
-            // Setup finished event listener for non-looping actions
+            // Setup finished event listener for combat actions
             this.mixer.addEventListener('finished', (e) => {
                 if (this.isDead) return;
-                // Return to idle or walk after action finishes
-                if (['light_punch', 'heavy_punch', 'dodge', 'hit', 'heavy_hit'].includes(this.currentState)) {
+                // Return to boxing stance after attack or reaction completes
+                if (['light_punch', 'heavy_punch', 'jab', 'cross', 'hook', 'dodge', 'hit', 'heavy_hit', 'hit_light', 'hit_heavy', 'stagger', 'taunt', 'pained_laugh'].includes(this.currentState)) {
                     this.isDodging = false;
-                    this.playAction('idle', 0.15);
+                    this.playAction('boxing_idle', 0.15);
                 }
             });
 
-            // Replace fallback capsule
+            // Replace visual model
             while (this.visualRoot.children.length > 0) {
                 this.visualRoot.remove(this.visualRoot.children[0]);
             }
             this.visualRoot.add(data.wrapper);
 
-            // Start with idle animation
-            this.playAction('idle', 0.1);
+            // Start in alert boxing stance
+            this.playAction('boxing_idle', 0.1);
+            this.updateInjuries();
         } catch (err) {
             console.warn('[Player] Error loading animated model, retaining capsule fallback:', err);
+        }
+    }
+
+    /**
+     * Updates visible blood and bruise buildup on the Narrator based on remaining health.
+     */
+    updateInjuries() {
+        if (this.accessoryData && this.accessoryData.bloodDecal && this.accessoryData.bloodDecal.material) {
+            const maxHp = this.stats[this.currentMode].maxHealth;
+            const healthRatio = Math.max(0, Math.min(1, this.health / maxHp));
+            // Decal opacity smoothly rises as health drops below 85%
+            const injuryOpacity = Math.max(0, Math.min(0.85, (1.0 - healthRatio) * 1.15));
+            this.accessoryData.bloodDecal.material.opacity = injuryOpacity;
         }
     }
 
@@ -122,10 +134,8 @@ export class Player {
 
         this.currentMode = nextMode;
 
-        // Apply visual theme to character model
-        if (this.model) {
-            this.assetLoader.applyTheme(this.model, this.currentMode);
-        }
+        // Re-load model accessories and theme for the active persona (Tyler vs Narrator)
+        this.loadModel(this.currentMode);
 
         // Adjust rim light color to match persona
         if (this.rimLight) {
@@ -264,10 +274,14 @@ export class Player {
             while (diff > Math.PI) diff -= Math.PI * 2;
             this.mesh.rotation.y += diff * 12 * dt;
 
-            this.playAction(this.currentMode === 'tyler' ? 'run' : 'walk', 0.15);
+            // Foot-sliding prevention: match stride timescale directly to movement speed
+            const isTyler = this.currentMode === 'tyler';
+            const baseStride = isTyler ? 4.8 : 3.0;
+            const footSyncScale = speed / baseStride;
+            this.playAction(isTyler ? 'run' : 'walk', 0.12, footSyncScale);
         } else {
-            this.playAction('idle', 0.15);
-            // Smoothly face opponent in fighting stance
+            this.playAction('boxing_idle', 0.15);
+            // Smoothly face opponent in boxing ready stance
             this.faceOpponent(dt);
         }
     }
@@ -303,7 +317,17 @@ export class Player {
         // Turn squarely toward opponent before delivering strike
         this.faceOpponent(1.0, 25);
 
-        const actionName = isHeavy ? 'heavy_punch' : 'light_punch';
+        // Alternate jabs & crosses for light punches, heavy hook for power swing
+        if (!this.comboCounter) this.comboCounter = 0;
+        this.comboCounter++;
+
+        let actionName = 'jab';
+        if (isHeavy) {
+            actionName = 'hook';
+        } else {
+            actionName = (this.comboCounter % 2 === 1) ? 'jab' : 'cross';
+        }
+
         this.playAction(actionName, 0.08);
 
         if (this.game.audio) this.game.audio.playWhoosh();
@@ -344,12 +368,15 @@ export class Player {
         } else {
             this.health = Math.max(0, this.health - damage);
             const isHeavyHit = damage >= 20;
-            this.playAction(isHeavyHit ? 'heavy_hit' : 'hit', 0.06);
+            this.playAction(isHeavyHit ? 'hit_heavy' : 'hit_light', 0.06);
             if (this.game.audio) this.game.audio.playHit(isHeavyHit ? 1.4 : 1.0);
             if (this.game.cameraShake) this.game.cameraShake(isHeavyHit ? 0.6 : 0.3);
             if (this.game.effects) this.game.effects.glitchBurst(0.25);
             if (this.game.ui) this.game.ui.showDamageText(this.mesh.position, `-${Math.round(damage)}`, '#ff1744');
             this.flashDamage(0xffffff);
+
+            // Update dynamic bruise & blood buildup on face & shirt
+            this.updateInjuries();
 
             // Knockback
             if (attacker) {
