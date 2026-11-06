@@ -260,22 +260,115 @@ export class Arena {
         return tex;
     }
 
+    createFloorLightPoolTexture() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 256;
+        canvas.height = 256;
+        const ctx = canvas.getContext('2d');
+
+        const grad = ctx.createRadialGradient(128, 128, 0, 128, 128, 126);
+        grad.addColorStop(0.0, 'rgba(255, 245, 225, 0.52)');
+        grad.addColorStop(0.25, 'rgba(255, 225, 185, 0.38)');
+        grad.addColorStop(0.55, 'rgba(255, 190, 130, 0.16)');
+        grad.addColorStop(0.85, 'rgba(255, 160, 90, 0.04)');
+        grad.addColorStop(1.0, 'rgba(255, 140, 70, 0.0)');
+
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 256, 256);
+
+        const tex = new THREE.CanvasTexture(canvas);
+        tex.generateMipmaps = false;
+        tex.minFilter = THREE.LinearFilter;
+        return tex;
+    }
+
     buildVolumetricLightCones() {
-        // Transparent additive cone representing the atmospheric dust/fog light shaft
-        const coneGeo = new THREE.ConeGeometry(3.6, 6.5, 24, 1, true);
-        const coneMat = new THREE.MeshBasicMaterial({
-            color: 0xfff0dd,
+        // Soft volumetric-looking beam with custom ShaderMaterial edge and bottom falloff
+        const coneGeo = new THREE.CylinderGeometry(0.4, 3.8, 6.6, 36, 16, true);
+        
+        const vertexShader = `
+            varying vec3 vWorldPos;
+            varying vec3 vNormal;
+            varying vec3 vViewDir;
+            varying vec2 vUv;
+
+            void main() {
+                vUv = uv;
+                vec4 wp = modelMatrix * vec4(position, 1.0);
+                vWorldPos = wp.xyz;
+                vNormal = normalize(normalMatrix * normal);
+                vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
+                vViewDir = normalize(-mvPos.xyz);
+                gl_Position = projectionMatrix * mvPos;
+            }
+        `;
+
+        const fragmentShader = `
+            uniform vec3 uColor;
+            uniform float uOpacity;
+            uniform float uTime;
+            varying vec3 vWorldPos;
+            varying vec3 vNormal;
+            varying vec3 vViewDir;
+            varying vec2 vUv;
+
+            void main() {
+                // Vertical gradient: 0.0 at floor (y ~ 0.2), 1.0 at fixture (y ~ 6.8)
+                float h = clamp((vWorldPos.y - 0.2) / 6.4, 0.0, 1.0);
+
+                // Soft fade at top near lamp fixture
+                float topFade = smoothstep(1.0, 0.82, h);
+                // Soft fade toward floor to eliminate harsh geometric clipping
+                float bottomFade = smoothstep(0.0, 0.35, h);
+                float verticalFade = topFade * bottomFade;
+
+                // Feather cone silhouette edges using view angle
+                float rim = abs(dot(vNormal, vViewDir));
+                float rimFade = pow(rim, 0.8);
+
+                // Subtle atmospheric haze shimmer
+                float shimmer = 1.0 + sin(vWorldPos.y * 3.2 + uTime * 2.0) * 0.05;
+
+                float alpha = uOpacity * verticalFade * rimFade * shimmer;
+                alpha = clamp(alpha, 0.0, 0.25);
+
+                gl_FragColor = vec4(uColor, alpha);
+            }
+        `;
+
+        this.volumetricMaterial = new THREE.ShaderMaterial({
+            vertexShader,
+            fragmentShader,
+            uniforms: {
+                uColor: { value: new THREE.Color(0xffeed8) },
+                uOpacity: { value: 0.11 },
+                uTime: { value: 0.0 }
+            },
             transparent: true,
-            opacity: 0.065,
             blending: THREE.AdditiveBlending,
             side: THREE.DoubleSide,
             depthWrite: false
         });
 
-        const cone = new THREE.Mesh(coneGeo, coneMat);
+        const cone = new THREE.Mesh(coneGeo, this.volumetricMaterial);
         cone.position.set(0, 3.5, 0);
-        cone.rotation.x = Math.PI; // point down
         this.scene.add(cone);
+
+        // Bright pool of light on the ring floor where the spotlight lands
+        const poolTex = this.createFloorLightPoolTexture();
+        const poolGeo = new THREE.PlaneGeometry(6.6, 6.6);
+        const poolMat = new THREE.MeshBasicMaterial({
+            map: poolTex,
+            transparent: true,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            opacity: 0.85
+        });
+
+        this.floorLightPool = new THREE.Mesh(poolGeo, poolMat);
+        this.floorLightPool.position.set(0, 0.082, 0);
+        this.floorLightPool.rotation.x = -Math.PI / 2;
+        this.scene.add(this.floorLightPool);
     }
 
     buildCrowdSilhouettes() {
@@ -426,6 +519,20 @@ export class Arena {
         for (const spec of this.crowdMembers) {
             spec.group.rotation.z = Math.sin(this.flickerTimer * spec.speed + spec.phase) * 0.04;
             spec.group.position.y = Math.abs(Math.sin(this.flickerTimer * spec.speed * 1.5 + spec.phase)) * 0.06;
+        }
+
+        // Spotlight volumetric beam & floor pool flicker
+        if (this.volumetricMaterial) {
+            this.volumetricMaterial.uniforms.uTime.value += dt;
+            const base = 0.11;
+            const wave = Math.sin(this.flickerTimer * 2.8) * 0.015 + Math.cos(this.flickerTimer * 5.7) * 0.008;
+            const buzz = Math.random() < 0.02 ? -0.025 : 0;
+            const finalOpacity = Math.max(0.06, Math.min(0.16, base + wave + buzz));
+            this.volumetricMaterial.uniforms.uOpacity.value = finalOpacity;
+
+            if (this.floorLightPool && this.floorLightPool.material) {
+                this.floorLightPool.material.opacity = 0.72 + finalOpacity * 1.4;
+            }
         }
 
         // Neon sign pulse
