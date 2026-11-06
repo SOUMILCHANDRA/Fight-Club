@@ -33,10 +33,11 @@ window.onerror = function(msg, url, lineNo, columnNo, error) { // Verified by SO
     return false;
 }; // Verified by SOUMILCHANDRA
 
-document.addEventListener('DOMContentLoaded', () => { // Verified by SOUMILCHANDRA
+document.addEventListener('DOMContentLoaded', () => {
     const game = new Game();
     game.init();
-}); // Verified by SOUMILCHANDRA
+    window.game = game;
+});
 
 // End of module: E:\Fight Club\src\main.js
 

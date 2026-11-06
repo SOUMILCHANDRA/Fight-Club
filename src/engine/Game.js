@@ -67,12 +67,9 @@ export class Game {
         // Construct Fight Club Basement Arena
         this.arena = new Arena(this.scene);
 
-        // Spawn iconic soap prop
-        this.loadSoap();
-
-        // Initialize Player inside ring facing north (Math.PI)
+        // Initialize Player inside ring facing north (Math.PI) ~3 units from opponent
         this.player = new Player(this);
-        this.player.mesh.position.set(-0.8, 0, 1.8);
+        this.player.mesh.position.set(0, 0, 1.5);
         this.player.mesh.rotation.y = Math.PI;
         this.entities.push(this.player);
         this.scene.add(this.player.mesh);
@@ -81,11 +78,11 @@ export class Game {
         this.playerBoxHelper = new THREE.BoxHelper(this.player.mesh, 0x00d4ff);
         this.debugHelpers.add(this.playerBoxHelper);
 
-        // Spawn Primary Opponent across the ring
-        this.spawnEnemy(new THREE.Vector3(0.8, 0, -1.8));
+        // Spawn Primary Opponent 3 units away across center ring
+        this.spawnEnemy(new THREE.Vector3(0, 0, -1.5));
 
         // Initial camera setup
-        this.camera.position.set(2.8, 2.2, 4.2);
+        this.camera.position.set(3.4, 2.2, 0.0);
         this.camera.lookAt(0, 1.2, 0);
 
         // Setup Modals & Mobile Touch listeners
@@ -148,22 +145,6 @@ export class Game {
         bindTouch('touch-block', 'l');
     }
 
-    loadSoap() {
-        this.assetLoader.loadAnimatedModel('/models/soap.glb', 0.4)
-            .then((soapScene) => {
-                this.soap = soapScene.wrapper;
-                this.soap.position.set(5.5, 0.35, -5.5);
-                this.scene.add(this.soap);
-            })
-            .catch(() => {
-                const soapGeo = new THREE.BoxGeometry(0.4, 0.2, 0.25);
-                const soapMat = new THREE.MeshStandardMaterial({ color: 0xff3399, roughness: 0.4 });
-                this.soap = new THREE.Mesh(soapGeo, soapMat);
-                this.soap.position.set(5.5, 0.35, -5.5);
-                this.scene.add(this.soap);
-            });
-    }
-
     spawnEnemy(position) {
         const enemy = new Enemy(this, position);
         this.entities.push(enemy);
@@ -191,13 +172,13 @@ export class Game {
     }
 
     restartFight() {
-        // Reset player
+        // Reset player at starting distance (1.5 units from center)
         if (this.player) {
             this.player.health = this.player.stats[this.player.currentMode].maxHealth;
             this.player.stamina = this.player.stats[this.player.currentMode].maxStamina;
             this.player.isDead = false;
             this.player.playAction('idle', 0.1);
-            this.player.mesh.position.set(-0.8, 0, 1.8);
+            this.player.mesh.position.set(0, 0, 1.5);
             this.player.mesh.rotation.y = Math.PI;
         }
 
@@ -206,7 +187,7 @@ export class Game {
             this.sanity.currentSanity = 100;
         }
 
-        // Remove old enemies and spawn fresh opponent
+        // Remove old enemies and spawn fresh opponent 3 units away
         for (const enemy of this.enemies) {
             this.scene.remove(enemy.mesh);
             if (enemy.boxHelper) this.debugHelpers.remove(enemy.boxHelper);
@@ -214,7 +195,7 @@ export class Game {
             if (idx !== -1) this.entities.splice(idx, 1);
         }
         this.enemies = [];
-        this.spawnEnemy(new THREE.Vector3(0.8, 0, -1.8));
+        this.spawnEnemy(new THREE.Vector3(0, 0, -1.5));
 
         this.ui.updatePlayerStats(1, 1, 1);
         this.ui.updateEnemyHealth(1);
@@ -260,12 +241,6 @@ export class Game {
             }
         }
 
-        // Rotate soap prop
-        if (this.soap) {
-            this.soap.rotation.y += 0.8 * dt;
-            this.soap.position.y = 0.35 + Math.sin(performance.now() * 0.0025) * 0.08;
-        }
-
         // Update raised 3/4 fight camera
         this.updateCamera(dt);
 
@@ -293,20 +268,20 @@ export class Game {
             const dist = toEnemy.length();
             toEnemy.normalize();
 
-            // Perpendicular horizontal side vector
+            // Perpendicular lateral vector side (right of engagement line)
             const side = new THREE.Vector3(-toEnemy.z, 0, toEnemy.x).normalize();
 
             // Midpoint between combatants
             const midPoint = new THREE.Vector3().addVectors(playerPos, enemy.mesh.position).multiplyScalar(0.5);
 
-            // Position camera offset to the right/side (2.6 units) and pulled back (3.4 to 4.8 units)
-            const zoomDist = Math.max(3.4, Math.min(5.2, 2.8 + dist * 0.35));
-            const camHeight = 2.05 + dist * 0.08;
+            // Dynamic zoom framing both fighters side-by-side
+            const zoomDist = Math.max(3.2, Math.min(5.6, 2.6 + dist * 0.42));
+            const camHeight = 2.15 + dist * 0.08;
 
             targetCamPos = midPoint.clone()
-                .addScaledVector(side, 2.5)
-                .addScaledVector(toEnemy, -zoomDist * 0.6)
-                .add(new THREE.Vector3(0, camHeight, zoomDist * 0.7));
+                .addScaledVector(side, zoomDist * 0.82)
+                .addScaledVector(toEnemy, -0.25)
+                .add(new THREE.Vector3(0, camHeight, zoomDist * 0.48));
 
             // Focus at chest level of midpoint
             lookTarget = midPoint.clone().add(new THREE.Vector3(0, 1.25, 0));
@@ -318,17 +293,17 @@ export class Game {
             lookTarget = playerPos.clone().add(new THREE.Vector3(0, 1.25, 0));
         }
 
-        // Apply camera shake
+        // Apply camera shake on heavy hits
         if (this.shakeIntensity > 0) {
             targetCamPos.x += (Math.random() - 0.5) * this.shakeIntensity;
             targetCamPos.y += (Math.random() - 0.5) * this.shakeIntensity;
             targetCamPos.z += (Math.random() - 0.5) * this.shakeIntensity;
-            this.shakeIntensity = Math.max(0, this.shakeIntensity - 3.2 * dt);
+            this.shakeIntensity = Math.max(0, this.shakeIntensity - 3.4 * dt);
         }
 
         // Smooth camera damping
-        this.currentCamPos.lerp(targetCamPos, 7.0 * dt);
-        this.cameraLookTarget.lerp(lookTarget, 8.5 * dt);
+        this.currentCamPos.lerp(targetCamPos, 7.5 * dt);
+        this.cameraLookTarget.lerp(lookTarget, 9.0 * dt);
 
         this.camera.position.copy(this.currentCamPos);
         this.camera.lookAt(this.cameraLookTarget);

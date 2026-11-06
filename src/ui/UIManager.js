@@ -37,8 +37,10 @@ export class UIManager {
         // Personality & Mode
         this.personalityName = document.getElementById('personality-name');
         this.personalityDesc = document.getElementById('personality-desc');
+        this.modeBadge = document.getElementById('mode-badge');
         this.glitchOverlay = document.getElementById('glitch-overlay');
         this.screenFlash = document.getElementById('screen-flash');
+        this.damageVignette = document.getElementById('damage-vignette');
 
         // Toast & Floating Damage container
         this.toast = document.getElementById('game-toast');
@@ -167,11 +169,33 @@ export class UIManager {
         }
     }
 
+    pulseDamageVignette() {
+        if (!this.damageVignette) return;
+        this.damageVignette.style.opacity = '0.9';
+        clearTimeout(this.vignetteTimeout);
+        this.vignetteTimeout = setTimeout(() => {
+            if (this.damageVignette) {
+                // If health is under 30%, keep a subtle persistent danger glow
+                const healthRatio = this.game && this.game.player ? this.game.player.health / 100 : 1;
+                this.damageVignette.style.opacity = healthRatio < 0.3 ? '0.35' : '0';
+            }
+        }, 280);
+    }
+
     updatePersonality(mode) {
         if (!this.personalityName) return;
         const isTyler = mode.toLowerCase() === 'tyler';
         this.personalityName.innerText = isTyler ? 'TYLER DURDEN' : 'RATIONAL YOU';
         this.personalityName.className = isTyler ? 'mode-tyler' : 'mode-rational';
+
+        // Update controls panel TAB badge
+        if (this.modeBadge) {
+            this.modeBadge.innerText = isTyler ? '[TYLER]' : '[RATIONAL]';
+            this.modeBadge.style.color = isTyler ? '#ff1744' : '#00d4ff';
+            this.modeBadge.style.textShadow = isTyler 
+                ? '0 0 10px rgba(255, 23, 68, 0.8)' 
+                : '0 0 8px rgba(0, 212, 255, 0.6)';
+        }
 
         if (this.personalityDesc) {
             this.personalityDesc.innerText = isTyler 
@@ -179,13 +203,13 @@ export class UIManager {
                 : 'TACTICAL COUNTERS // CLEAN DEFENSE // GROUNDED';
         }
 
-        // Screen Flash Transition
+        // Screen Flash Transition with color change
         if (this.screenFlash) {
-            this.screenFlash.style.backgroundColor = isTyler ? 'rgba(255, 23, 68, 0.35)' : 'rgba(0, 212, 255, 0.35)';
+            this.screenFlash.style.backgroundColor = isTyler ? 'rgba(255, 23, 68, 0.45)' : 'rgba(0, 212, 255, 0.45)';
             this.screenFlash.style.opacity = '1';
             setTimeout(() => {
                 this.screenFlash.style.opacity = '0';
-            }, 180);
+            }, 200);
         }
 
         this.showToast(isTyler ? '⚠️ ALTER EGO MANIFESTED: TYLER DURDEN' : 'CALM RESTORED: RATIONAL MIND');

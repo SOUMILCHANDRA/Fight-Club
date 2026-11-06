@@ -23,18 +23,18 @@ export class Arena {
     }
 
     setupThreePointLighting() {
-        // 1. Hemisphere Fill Light (Ensures no fighter is ever pitch black)
-        const hemiLight = new THREE.HemisphereLight(0x445566, 0x222228, 1.4);
+        // 1. Hemisphere Fill Light (Ensures no fighter is ever pitch black, raised for clarity)
+        const hemiLight = new THREE.HemisphereLight(0x667788, 0x333340, 2.0);
         this.scene.add(hemiLight);
 
         // 2. Warm Key Spotlight from above-front
-        const keySpot = new THREE.SpotLight(0xffeedd, 55);
+        const keySpot = new THREE.SpotLight(0xffeedd, 58);
         keySpot.position.set(0, 8.0, 4.0);
         keySpot.target.position.set(0, 1.0, 0);
         keySpot.angle = Math.PI / 3;
         keySpot.penumbra = 0.55;
         keySpot.decay = 1.6;
-        keySpot.distance = 30;
+        keySpot.distance = 32;
         keySpot.castShadow = true;
         keySpot.shadow.mapSize.width = 1024;
         keySpot.shadow.mapSize.height = 1024;
@@ -42,19 +42,19 @@ export class Arena {
         this.scene.add(keySpot);
         this.scene.add(keySpot.target);
 
-        // 3. Cool Rim Light from behind the ring
-        const rimPoint = new THREE.PointLight(0x00d4ff, 28, 25);
+        // 3. Cool Rim Light from behind the ring (frames fighter silhouettes)
+        const rimPoint = new THREE.PointLight(0x00d4ff, 32, 26);
         rimPoint.position.set(0, 5.0, -6.5);
         this.scene.add(rimPoint);
 
         // 4. Warm overhead pendant light over center ring
-        const centerDownSpot = new THREE.SpotLight(0xfff5ea, 45);
+        const centerDownSpot = new THREE.SpotLight(0xfff5ea, 48);
         centerDownSpot.position.set(0, 6.8, 0);
         centerDownSpot.target.position.set(0, 0, 0);
         centerDownSpot.angle = Math.PI / 3.4;
         centerDownSpot.penumbra = 0.5;
         centerDownSpot.decay = 1.7;
-        centerDownSpot.distance = 25;
+        centerDownSpot.distance = 26;
         centerDownSpot.castShadow = true;
         this.scene.add(centerDownSpot);
         this.scene.add(centerDownSpot.target);
@@ -218,41 +218,90 @@ export class Arena {
         canvas.height = 1024;
         const ctx = canvas.getContext('2d');
 
-        // Base canvas color (weathered off-white / light slate)
-        ctx.fillStyle = '#3a3a42';
+        // 1. Base canvas color (weathered heavyweight fight canvas)
+        ctx.fillStyle = '#36373f';
         ctx.fillRect(0, 0, 1024, 1024);
 
-        // Dark canvas noise / stains
-        for (let i = 0; i < 400; i++) {
-            const x = Math.random() * 1024;
-            const y = Math.random() * 1024;
-            const radius = Math.random() * 25 + 5;
-            ctx.fillStyle = Math.random() < 0.2 ? 'rgba(120, 20, 30, 0.15)' : 'rgba(0, 0, 0, 0.08)';
+        // 2. Fine canvas weave / micro-texture
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.025)';
+        for (let y = 0; y < 1024; y += 4) {
+            ctx.fillRect(0, y, 1024, 1);
+        }
+        for (let x = 0; x < 1024; x += 4) {
+            ctx.fillRect(x, 0, 1, 1024);
+        }
+
+        // 3. Subtle organic canvas grime and foot-scuff streaks
+        for (let i = 0; i < 45; i++) {
+            const cx = 512 + (Math.random() - 0.5) * 550;
+            const cy = 512 + (Math.random() - 0.5) * 550;
+            const len = 30 + Math.random() * 70;
+            const angle = Math.random() * Math.PI * 2;
+
+            ctx.strokeStyle = Math.random() < 0.6 
+                ? 'rgba(15, 15, 20, 0.08)' 
+                : 'rgba(255, 255, 255, 0.04)';
+            ctx.lineWidth = 4 + Math.random() * 12;
+            ctx.lineCap = 'round';
             ctx.beginPath();
-            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx + Math.cos(angle) * len, cy + Math.sin(angle) * len);
+            ctx.stroke();
+        }
+
+        // 4. Irregular blood & sweat stains concentrated near center ring (varied shapes, low opacity)
+        const stainColors = [
+            'rgba(140, 20, 35, 0.18)',
+            'rgba(110, 15, 25, 0.14)',
+            'rgba(90, 10, 20, 0.22)',
+            'rgba(30, 25, 25, 0.12)'
+        ];
+
+        for (let i = 0; i < 18; i++) {
+            // Concentrated within 220px of center
+            const radDist = Math.random() * 220;
+            const angle = Math.random() * Math.PI * 2;
+            const cx = 512 + Math.cos(angle) * radDist;
+            const cy = 512 + Math.sin(angle) * radDist;
+            const stainRadius = 8 + Math.random() * 28;
+
+            ctx.fillStyle = stainColors[i % stainColors.length];
+            ctx.beginPath();
+            // Create irregular organic polygon splat instead of circles
+            const numPoints = 7 + Math.floor(Math.random() * 5);
+            for (let p = 0; p < numPoints; p++) {
+                const theta = (p / numPoints) * Math.PI * 2;
+                const r = stainRadius * (0.55 + Math.random() * 0.7);
+                const px = cx + Math.cos(theta) * r;
+                const py = cy + Math.sin(theta) * r;
+                if (p === 0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+            }
+            ctx.closePath();
             ctx.fill();
         }
 
-        // Center circular fight ring
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
-        ctx.lineWidth = 14;
+        // 5. Crisp white outer fight circle
+        ctx.strokeStyle = 'rgba(240, 242, 248, 0.75)';
+        ctx.lineWidth = 5;
         ctx.beginPath();
         ctx.arc(512, 512, 280, 0, Math.PI * 2);
         ctx.stroke();
 
-        // Inner circle
-        ctx.strokeStyle = 'rgba(255, 23, 68, 0.25)';
-        ctx.lineWidth = 6;
+        // 6. Thinner red inner ring as emissive accent
+        ctx.strokeStyle = 'rgba(255, 23, 68, 0.55)';
+        ctx.lineWidth = 2.5;
         ctx.beginPath();
-        ctx.arc(512, 512, 250, 0, Math.PI * 2);
+        ctx.arc(512, 512, 254, 0, Math.PI * 2);
         ctx.stroke();
 
-        // Stenciled "RULE #1: NO QUESTIONS" along the edge
-        ctx.font = 'bold 32px "Space Mono", monospace';
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
+        // 7. Crisp stenciled "PROJECT MAYHEM" ring border
+        ctx.font = 'bold 30px "Space Mono", monospace';
+        ctx.fillStyle = 'rgba(240, 240, 245, 0.32)';
         ctx.textAlign = 'center';
-        ctx.fillText('PROJECT MAYHEM  •  UNDERGROUND FIGHT CLUB  •  RULE #1', 512, 120);
-        ctx.fillText('PROJECT MAYHEM  •  UNDERGROUND FIGHT CLUB  •  RULE #1', 512, 920);
+        ctx.letterSpacing = '3px';
+        ctx.fillText('PROJECT MAYHEM  •  UNDERGROUND FIGHT CLUB  •  RULE #1', 512, 110);
+        ctx.fillText('PROJECT MAYHEM  •  UNDERGROUND FIGHT CLUB  •  RULE #1', 512, 930);
 
         const tex = new THREE.CanvasTexture(canvas);
         tex.wrapS = THREE.ClampToEdgeWrapping;
@@ -477,7 +526,12 @@ export class Arena {
     }
 
     buildIndustrialProps() {
-        const crateMat = new THREE.MeshStandardMaterial({ color: 0x3d2c1e, roughness: 0.85 });
+        // 1. Weathered Wooden Crates
+        const crateMat = new THREE.MeshStandardMaterial({ 
+            color: 0x38281c, 
+            roughness: 0.88,
+            metalness: 0.1
+        });
         const crateGeo = new THREE.BoxGeometry(1.2, 1.2, 1.2);
 
         const cratePositions = [
@@ -485,31 +539,107 @@ export class Arena {
             [-14, 1.8, -14],
             [-12.7, 0.6, -14],
             [14, 0.6, -13],
+            [13.8, 1.8, -13],
             [13, 0.6, 14],
-            [14, 0.6, 14]
+            [14.2, 0.6, 14],
+            [-13.5, 0.6, 12]
         ];
 
         cratePositions.forEach(([x, y, z]) => {
             const crate = new THREE.Mesh(crateGeo, crateMat);
             crate.position.set(x, y, z);
-            crate.rotation.y = (Math.random() - 0.5) * 0.4;
+            crate.rotation.y = (Math.random() - 0.5) * 0.5;
             crate.castShadow = true;
             crate.receiveShadow = true;
             this.scene.add(crate);
         });
 
-        // Metal Barrels
-        const barrelGeo = new THREE.CylinderGeometry(0.5, 0.5, 1.4, 16);
+        // 2. Heavy Metal Industrial Oil Drums / Barrels
+        const barrelGeo = new THREE.CylinderGeometry(0.48, 0.48, 1.4, 16);
         const barrelMat = new THREE.MeshStandardMaterial({
-            color: 0x1c2430,
-            metalness: 0.7,
+            color: 0x1f2733,
+            metalness: 0.75,
+            roughness: 0.35
+        });
+
+        const barrelPositions = [
+            [-14, 0.7, 13.5],
+            [-12.8, 0.7, 13.8],
+            [13.5, 0.7, -11.5],
+            [14.2, 0.7, 11.5]
+        ];
+
+        barrelPositions.forEach(([x, y, z]) => {
+            const barrel = new THREE.Mesh(barrelGeo, barrelMat);
+            barrel.position.set(x, y, z);
+            barrel.castShadow = true;
+            barrel.receiveShadow = true;
+            this.scene.add(barrel);
+        });
+
+        // 3. Underground Fight Club Metal Folding Chairs outside the ropes
+        const chairMat = new THREE.MeshStandardMaterial({
+            color: 0x24242a,
+            metalness: 0.65,
             roughness: 0.4
         });
-        const barrel = new THREE.Mesh(barrelGeo, barrelMat);
-        barrel.position.set(-14, 0.7, 13);
-        barrel.castShadow = true;
-        barrel.receiveShadow = true;
-        this.scene.add(barrel);
+
+        const chairPositions = [
+            [-8.2, 0, -3.0],
+            [-8.2, 0, 0.0],
+            [-8.2, 0, 3.0],
+            [8.2, 0, -2.5],
+            [8.2, 0, 2.0]
+        ];
+
+        chairPositions.forEach(([x, y, z]) => {
+            const chairGroup = new THREE.Group();
+            chairGroup.position.set(x, y, z);
+            chairGroup.lookAt(0, 0, 0);
+
+            // Seat
+            const seat = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.05, 0.7), chairMat);
+            seat.position.y = 0.55;
+            chairGroup.add(seat);
+
+            // Backrest
+            const back = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.55, 0.05), chairMat);
+            back.position.set(0, 0.95, -0.32);
+            chairGroup.add(back);
+
+            // Legs
+            const legGeo = new THREE.CylinderGeometry(0.025, 0.025, 0.55, 8);
+            const legOffsets = [[-0.3, -0.3], [0.3, -0.3], [-0.3, 0.3], [0.3, 0.3]];
+            legOffsets.forEach(([lx, lz]) => {
+                const leg = new THREE.Mesh(legGeo, chairMat);
+                leg.position.set(lx, 0.275, lz);
+                chairGroup.add(leg);
+            });
+
+            chairGroup.castShadow = true;
+            this.scene.add(chairGroup);
+        });
+
+        // 4. Heavy Steel Hanging Chains suspended from ceiling ducts
+        const chainMat = new THREE.MeshStandardMaterial({
+            color: 0x333338,
+            metalness: 0.9,
+            roughness: 0.25
+        });
+
+        const chainPositions = [
+            [-4.5, -4.0],
+            [4.5, -4.0],
+            [-6.5, 4.0],
+            [6.5, 4.0]
+        ];
+
+        chainPositions.forEach(([cx, cz]) => {
+            const chainGeo = new THREE.CylinderGeometry(0.035, 0.035, 3.8, 8);
+            const chain = new THREE.Mesh(chainGeo, chainMat);
+            chain.position.set(cx, 5.2, cz);
+            this.scene.add(chain);
+        });
     }
 
     update(dt) {

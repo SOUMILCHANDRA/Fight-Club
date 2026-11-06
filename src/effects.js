@@ -307,35 +307,38 @@ export class Effects {
         }
 
         // ----------------------------------------------------
-        // 3. Glitch Bursts & Chromatic Aberration Filter
+        // 3. Smooth Chromatic Aberration Filter & Glitch
         // ----------------------------------------------------
+        const sanityDeficit = Math.max(0, 1.0 - (sanityVal / 100)); // 0.0 at 100%, 1.0 at 0%
+        const smoothIntensity = Math.pow(sanityDeficit, 1.6); // smooth ramp-up curve
+
         if (this.burstTimer > 0) {
             this.burstTimer -= dt;
             if (this.glitchOverlay) {
-                this.glitchOverlay.style.opacity = '0.7';
-                this.glitchOverlay.style.filter = `hue-rotate(${Math.random() * 360}deg) saturate(200%)`;
-            }
-        } else if (sanityTier === 'CRITICAL') {
-            if (this.glitchOverlay) {
-                this.glitchOverlay.style.opacity = String(0.25 + Math.random() * 0.3);
-                this.glitchOverlay.style.filter = `contrast(130%) hue-rotate(${Math.sin(performance.now() * 0.005) * 45}deg)`;
+                this.glitchOverlay.style.opacity = '0.75';
+                this.glitchOverlay.style.filter = `hue-rotate(${Math.random() * 360}deg) saturate(220%)`;
             }
         } else if (this.glitchOverlay) {
-            this.glitchOverlay.style.opacity = '0';
+            if (smoothIntensity > 0.05) {
+                const baseOpacity = smoothIntensity * 0.45;
+                const pulse = Math.sin(performance.now() * 0.004) * (smoothIntensity * 0.15);
+                this.glitchOverlay.style.opacity = String(Math.max(0, baseOpacity + pulse).toFixed(3));
+                const hue = Math.sin(performance.now() * 0.003) * (smoothIntensity * 75);
+                this.glitchOverlay.style.filter = `contrast(${100 + smoothIntensity * 40}%) hue-rotate(${hue.toFixed(1)}deg)`;
+            } else {
+                this.glitchOverlay.style.opacity = '0';
+            }
         }
 
         // ----------------------------------------------------
-        // 4. UI Jitter at Low Sanity
+        // 4. Smooth UI Jitter (ramps up continuously as sanity drains)
         // ----------------------------------------------------
         if (this.uiContainer) {
-            if (sanityTier === 'CRITICAL') {
-                const jx = (Math.random() - 0.5) * 6;
-                const jy = (Math.random() - 0.5) * 4;
-                this.uiContainer.style.transform = `translate(${jx}px, ${jy}px)`;
-            } else if (sanityTier === 'DISTORTED') {
-                const jx = (Math.random() - 0.5) * 1.5;
-                const jy = (Math.random() - 0.5) * 1.5;
-                this.uiContainer.style.transform = `translate(${jx}px, ${jy}px)`;
+            if (smoothIntensity > 0.1) {
+                const maxJitter = smoothIntensity * 6.5; // up to 6.5px at 0 sanity
+                const jx = (Math.random() - 0.5) * maxJitter;
+                const jy = (Math.random() - 0.5) * maxJitter;
+                this.uiContainer.style.transform = `translate(${jx.toFixed(1)}px, ${jy.toFixed(1)}px)`;
             } else {
                 this.uiContainer.style.transform = 'none';
             }

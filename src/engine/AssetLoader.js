@@ -104,13 +104,13 @@ export class AssetLoader {
         };
 
         const clipMap = {
-            idle: ['Idle_Neutral', 'Idle', 'idle'],
+            idle: ['Idle_Sword', 'Idle_Neutral', 'Idle', 'idle'],
             walk: ['Walk', 'walk', 'Walking'],
             run: ['Run', 'run'],
             light_punch: ['Punch_Left', 'Punch', 'punch'],
             heavy_punch: ['Punch_Right', 'Punch_Heavy', 'Punch'],
             kick: ['Kick_Left', 'Kick_Right', 'Kick'],
-            block: ['Interact', 'Idle_Sword', 'Duck', 'block'],
+            block: ['Interact', 'Duck', 'block'],
             dodge: ['Roll', 'roll', 'Dodge'],
             hit: ['HitRecieve', 'HitReact', 'hit'],
             heavy_hit: ['HitRecieve_2', 'HitRecieve', 'hit'],
@@ -144,38 +144,52 @@ export class AssetLoader {
     /**
      * Applies character theme materials (Narrator, Tyler, or Brawler).
      */
-    applyTheme(model, theme = 'narrator') {
+    applyTheme(model, theme = 'rational') {
         model.traverse((child) => {
             if (child.isMesh && child.material) {
                 const mat = child.material.clone();
                 child.material = mat;
 
-                if (theme === 'narrator') {
-                    // Office employee noir palette: dark charcoal slacks, light shirt
+                if (theme === 'rational' || theme === 'narrator') {
+                    // Player Rational: Sharp Cyan & Slate palette
                     if (child.name.includes('007') || child.name.includes('Body')) {
-                        mat.color.setHex(0xd0d8e8); // light shirt
+                        mat.color.setHex(0xd4e2f4); // light athletic shirt
+                        mat.emissive.setHex(0x003344);
+                        mat.emissiveIntensity = 0.25;
                     } else if (child.name.includes('009') || child.name.includes('Pants') || child.name.includes('Legs')) {
-                        mat.color.setHex(0x181a20); // dark slacks
+                        mat.color.setHex(0x1a2432); // dark slate pants
                     } else {
-                        mat.color.setHex(0x2a303c);
+                        // Cyan wrist/hand wraps accent
+                        mat.color.setHex(0x00d4ff);
+                        mat.emissive.setHex(0x006688);
+                        mat.emissiveIntensity = 0.4;
                     }
                 } else if (theme === 'tyler') {
-                    // Tyler Durden: flamboyant crimson red jacket, dark pants, gold accents
+                    // Player Tyler: High-voltage Orange / Red leather jacket & gold trim
                     if (child.name.includes('007') || child.name.includes('Body')) {
-                        mat.color.setHex(0xdd1133); // bold red jacket
+                        mat.color.setHex(0xff3d00); // fiery orange/red jacket
+                        mat.emissive.setHex(0x661100);
+                        mat.emissiveIntensity = 0.35;
                     } else if (child.name.includes('009') || child.name.includes('Pants')) {
-                        mat.color.setHex(0x111111); // black pants
+                        mat.color.setHex(0x15151a); // black combat pants
                     } else {
-                        mat.color.setHex(0xff3355);
+                        // Gold/amber knuckle & wrist wraps
+                        mat.color.setHex(0xffab00);
+                        mat.emissive.setHex(0x884400);
+                        mat.emissiveIntensity = 0.5;
                     }
                 } else if (theme === 'brawler') {
-                    // Underground Brawler: bruised, scarred charcoal and rust-red wraps
+                    // Enemy Brawler: Bruised athletic tone with vivid Crimson / Blood-Red wraps & shorts
                     if (child.name.includes('007') || child.name.includes('Body')) {
-                        mat.color.setHex(0x44302c); // weathered brown/grey
+                        mat.color.setHex(0x945448); // warm athletic skin tone (highly readable)
+                        mat.roughness = 0.6;
                     } else if (child.name.includes('009') || child.name.includes('Pants')) {
-                        mat.color.setHex(0x222222); // dark sweatpants
+                        mat.color.setHex(0x281920); // dark combat trunks
                     } else {
-                        mat.color.setHex(0x882233); // rust wraps
+                        // Vivid Crimson / Blood-Red knuckle and ankle accents
+                        mat.color.setHex(0xff1744);
+                        mat.emissive.setHex(0x880018);
+                        mat.emissiveIntensity = 0.45;
                     }
                 }
             }

@@ -47,8 +47,8 @@ export class Player {
         this.fallback = this.assetLoader.createCapsuleFallback(0x2a75d3, 1.8, 'Player');
         this.visualRoot.add(this.fallback);
 
-        // Rim light
-        this.rimLight = new THREE.PointLight(0x00d4ff, 2.0, 5);
+        // Rim light (Cool cyan backlight for crisp silhouette readability)
+        this.rimLight = new THREE.PointLight(0x00d4ff, 3.2, 5.5);
         this.rimLight.position.set(0, 1.8, 0.6);
         this.mesh.add(this.rimLight);
 
@@ -267,6 +267,23 @@ export class Player {
             this.playAction(this.currentMode === 'tyler' ? 'run' : 'walk', 0.15);
         } else {
             this.playAction('idle', 0.15);
+            // Smoothly face opponent in fighting stance
+            this.faceOpponent(dt);
+        }
+    }
+
+    faceOpponent(dt, speed = 10) {
+        const enemy = this.game.enemies && this.game.enemies.find(e => !e.isDead);
+        if (enemy) {
+            const dx = enemy.mesh.position.x - this.mesh.position.x;
+            const dz = enemy.mesh.position.z - this.mesh.position.z;
+            if (Math.hypot(dx, dz) > 0.05) {
+                const targetRotation = Math.atan2(dx, dz);
+                let diff = targetRotation - this.mesh.rotation.y;
+                while (diff < -Math.PI) diff += Math.PI * 2;
+                while (diff > Math.PI) diff -= Math.PI * 2;
+                this.mesh.rotation.y += diff * speed * dt;
+            }
         }
     }
 
@@ -283,6 +300,9 @@ export class Player {
         if (this.stamina < staminaCost) return;
 
         this.stamina -= staminaCost;
+        // Turn squarely toward opponent before delivering strike
+        this.faceOpponent(1.0, 25);
+
         const actionName = isHeavy ? 'heavy_punch' : 'light_punch';
         this.playAction(actionName, 0.08);
 
@@ -305,6 +325,11 @@ export class Player {
             if (this.game.sanity) this.game.sanity.gainSanity(8);
             if (this.game.ui) this.game.ui.showDamageText(this.mesh.position, 'EVADED!', '#00d4ff');
             return;
+        }
+
+        // Trigger red vignette pulse on damage
+        if (this.game.ui && this.game.ui.pulseDamageVignette) {
+            this.game.ui.pulseDamageVignette();
         }
 
         let damage = rawDamage;

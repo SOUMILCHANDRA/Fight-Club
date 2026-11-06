@@ -6,7 +6,7 @@ import * as THREE from 'three';
  * damage flashing, knockback, and knockout death collapse.
  */
 export class Enemy {
-    constructor(game, position = new THREE.Vector3(0, 0, -2.5)) {
+    constructor(game, position = new THREE.Vector3(0, 0, -1.5)) {
         this.game = game;
         this.assetLoader = game.assetLoader;
 
@@ -44,10 +44,14 @@ export class Enemy {
         this.fallback = this.assetLoader.createCapsuleFallback(0x8b263e, 1.8, 'Enemy');
         this.visualRoot.add(this.fallback);
 
-        // Rim light
-        this.rimLight = new THREE.PointLight(0xff3344, 1.8, 5);
+        // Rim lights (Fiery red rim + cool blue backlight for crisp edge separation)
+        this.rimLight = new THREE.PointLight(0xff1744, 3.2, 5.5);
         this.rimLight.position.set(0, 1.8, -0.6);
         this.mesh.add(this.rimLight);
+
+        this.backRimLight = new THREE.PointLight(0x3388ff, 2.2, 5.5);
+        this.backRimLight.position.set(0.4, 1.8, -0.8);
+        this.mesh.add(this.backRimLight);
 
         // Load full-body animated model
         this.loadModel();
@@ -124,13 +128,13 @@ export class Enemy {
         toPlayer.y = 0;
         const dist = toPlayer.length();
 
-        // Face player smoothly
+        // Face player smoothly every frame
         if (dist > 0.1) {
             const targetRotation = Math.atan2(toPlayer.x, toPlayer.z);
             let diff = targetRotation - this.mesh.rotation.y;
             while (diff < -Math.PI) diff += Math.PI * 2;
             while (diff > Math.PI) diff -= Math.PI * 2;
-            this.mesh.rotation.y += diff * 8 * dt;
+            this.mesh.rotation.y += diff * 10 * dt;
         }
 
         this.attackCooldown -= dt;
@@ -150,18 +154,19 @@ export class Enemy {
             return;
         }
 
-        const strikeReach = 1.75;
-        const backOffDist = 1.1;
+        // Close distance to ~1.5 units to attack
+        const strikeReach = 1.55;
+        const backOffDist = 0.95;
 
         if (dist > strikeReach) {
-            // Approach player
+            // Approach player to strike range
             this.aiState = 'approach';
             const moveDir = toPlayer.clone().normalize();
             this.mesh.position.addScaledVector(moveDir, this.speed * dt);
             this.clampInsideRing();
             this.playAction('walk', 0.15);
         } else if (dist <= strikeReach && dist >= backOffDist) {
-            // In striking distance: attack or block
+            // In striking distance (~1.5 units): attack or block
             if (this.attackCooldown <= 0) {
                 const roll = Math.random();
                 if (roll < 0.65) {
