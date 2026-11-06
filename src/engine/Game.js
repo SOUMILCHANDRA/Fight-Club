@@ -5,6 +5,9 @@ import { UIManager } from '../ui/UIManager.js';
 import { Input } from '../systems/Input.js';
 import { CombatSystem } from '../systems/CombatSystem.js';
 import { SanitySystem } from '../systems/SanitySystem.js';
+import { PersonalitySystem } from '../systems/PersonalitySystem.js';
+import { TylerAI } from '../systems/TylerAI.js';
+import { CameraDirector } from '../systems/CameraDirector.js';
 import { AssetLoader } from './AssetLoader.js';
 import { Arena } from './Arena.js';
 import { Effects } from '../effects.js';
@@ -30,6 +33,9 @@ export class Game {
         this.effects = new Effects(this.scene, this.renderer);
         this.combat = new CombatSystem(this);
         this.sanity = new SanitySystem(this);
+        this.personality = new PersonalitySystem(this);
+        this.tylerAI = new TylerAI(this);
+        this.cameraDirector = new CameraDirector(this);
 
         this.entities = [];
         this.enemies = [];
@@ -41,11 +47,6 @@ export class Game {
         this.debugHelpers.name = 'DebugHelpers';
         this.debugHelpers.visible = false;
         this.scene.add(this.debugHelpers);
-
-        // Raised 3/4 fight camera state
-        this.shakeIntensity = 0;
-        this.cameraLookTarget = new THREE.Vector3(0, 1.25, 0);
-        this.currentCamPos = new THREE.Vector3(2.8, 2.2, 4.2);
 
         // GameLoop integration
         this.gameLoop = new GameLoop(
@@ -73,6 +74,8 @@ export class Game {
         this.player.mesh.rotation.y = Math.PI;
         this.entities.push(this.player);
         this.scene.add(this.player.mesh);
+
+        this.tylerAI.setPlayer(this.player);
 
         // Player Debug BoxHelper
         this.playerBoxHelper = new THREE.BoxHelper(this.player.mesh, 0x00d4ff);
@@ -164,22 +167,50 @@ export class Game {
         }, 1200);
     }
 
-    onGameOver(isVictory) {
-        this.ui.showToast('YOU LOST CONSCIOUSNESS.', 2500);
-        setTimeout(() => {
-            this.ui.showGameOver(false);
-        }, 1200);
+    onGameOver(isVictory, isTylerTakeoverLoss = false) {
+        if (isTylerTakeoverLoss) {
+            this.ui.showToast('TYLER WON. YOU LOST.', 3000);
+            setTimeout(() => {
+                this.ui.showGameOver(false, true);
+            }, 1200);
+        } else {
+            this.ui.showToast('YOU LOST CONSCIOUSNESS.', 2500);
+            setTimeout(() => {
+                this.ui.showGameOver(false, false);
+            }, 1200);
+        }
     }
 
     restartFight() {
+        // Reset personality and camera modes
+        if (this.personality) {
+            this.personality.isTylerAutonomous = false;
+            this.personality.setPersona('narrator');
+            this.personality.controlMeter = 0;
+            this.personality.takeoverTimer = 0;
+            this.personality.blackoutCooldown = 25.0 + Math.random() * 15.0;
+        }
+
+        if (this.cameraDirector) {
+            this.cameraDirector.setMode('fight');
+        }
+
+        if (this.ui) {
+            this.ui.setTylerTakeoverUI(false);
+            this.ui.updatePersonality('narrator');
+        }
+
         // Reset player at starting distance (1.5 units from center)
         if (this.player) {
-            this.player.health = this.player.stats[this.player.currentMode].maxHealth;
-            this.player.stamina = this.player.stats[this.player.currentMode].maxStamina;
+            this.player.currentMode = 'rational';
+            this.player.health = this.player.stats.rational.maxHealth;
+            this.player.stamina = this.player.stats.rational.maxStamina;
             this.player.isDead = false;
-            this.player.playAction('idle', 0.1);
+            this.player.loadModel('rational');
+            this.player.playAction('boxing_idle', 0.1);
             this.player.mesh.position.set(0, 0, 1.5);
             this.player.mesh.rotation.y = Math.PI;
+            this.player.updateInjuries();
         }
 
         // Reset sanity
@@ -213,7 +244,9 @@ export class Game {
     }
 
     cameraShake(intensity = 0.35) {
-        this.shakeIntensity = Math.max(this.shakeIntensity, intensity);
+        if (this.cameraDirector) {
+            this.cameraDirector.shake(intensity);
+        }
     }
 
     onResize() {
@@ -226,11 +259,17 @@ export class Game {
         // Update environment & systems
         this.arena.update(dt);
         this.sanity.update(dt);
+        this.personality.update(dt);
         this.effects.update(dt, this.sanity.tier, this.sanity.currentSanity);
 
         // Update entities
         for (const entity of this.entities) {
             entity.update(dt);
+        }
+
+        // If Tyler is running autonomously, step Tyler AI
+        if (this.personality && this.personality.isTylerAutonomous) {
+            this.tylerAI.update(dt);
         }
 
         // Update debug helpers if active
@@ -241,8 +280,10 @@ export class Game {
             }
         }
 
-        // Update raised 3/4 fight camera
-        this.updateCamera(dt);
+        // Update cinematic camera
+        if (this.cameraDirector) {
+            this.cameraDirector.update(dt);
+        }
 
         // Flush input keys
         this.input.update();
@@ -250,62 +291,5 @@ export class Game {
 
     render(dt) {
         this.renderer.render(this.scene, this.camera);
-    }
-
-    updateCamera(dt) {
-        if (!this.player || !this.player.mesh) return;
-
-        const playerPos = this.player.mesh.position;
-        const enemy = this.enemies.find(e => !e.isDead);
-
-        let targetCamPos;
-        let lookTarget;
-
-        if (enemy) {
-            // Raised 3/4 angle fight camera: frames both fighters without either blocking the other
-            const toEnemy = new THREE.Vector3().subVectors(enemy.mesh.position, playerPos);
-            toEnemy.y = 0;
-            const dist = toEnemy.length();
-            toEnemy.normalize();
-
-            // Perpendicular lateral vector side (right of engagement line)
-            const side = new THREE.Vector3(-toEnemy.z, 0, toEnemy.x).normalize();
-
-            // Midpoint between combatants
-            const midPoint = new THREE.Vector3().addVectors(playerPos, enemy.mesh.position).multiplyScalar(0.5);
-
-            // Dynamic zoom framing both fighters side-by-side
-            const zoomDist = Math.max(3.2, Math.min(5.6, 2.6 + dist * 0.42));
-            const camHeight = 2.15 + dist * 0.08;
-
-            targetCamPos = midPoint.clone()
-                .addScaledVector(side, zoomDist * 0.82)
-                .addScaledVector(toEnemy, -0.25)
-                .add(new THREE.Vector3(0, camHeight, zoomDist * 0.48));
-
-            // Focus at chest level of midpoint
-            lookTarget = midPoint.clone().add(new THREE.Vector3(0, 1.25, 0));
-        } else {
-            // Default cinematic follow
-            const playerRotY = this.player.mesh.rotation.y;
-            const camOffset = new THREE.Vector3(1.8, 2.1, 3.8).applyAxisAngle(new THREE.Vector3(0, 1, 0), playerRotY);
-            targetCamPos = playerPos.clone().add(camOffset);
-            lookTarget = playerPos.clone().add(new THREE.Vector3(0, 1.25, 0));
-        }
-
-        // Apply camera shake on heavy hits
-        if (this.shakeIntensity > 0) {
-            targetCamPos.x += (Math.random() - 0.5) * this.shakeIntensity;
-            targetCamPos.y += (Math.random() - 0.5) * this.shakeIntensity;
-            targetCamPos.z += (Math.random() - 0.5) * this.shakeIntensity;
-            this.shakeIntensity = Math.max(0, this.shakeIntensity - 3.4 * dt);
-        }
-
-        // Smooth camera damping
-        this.currentCamPos.lerp(targetCamPos, 7.5 * dt);
-        this.cameraLookTarget.lerp(lookTarget, 9.0 * dt);
-
-        this.camera.position.copy(this.currentCamPos);
-        this.camera.lookAt(this.cameraLookTarget);
     }
 }

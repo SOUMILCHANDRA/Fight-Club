@@ -1,8 +1,7 @@
 /**
  * SanitySystem: Tracks the psychological collapse of the protagonist.
  * Drains on taking damage; recovers on clean dodges/blocks.
- * At low sanity, automatically triggers Tyler Durden takeover, visual distortion,
- * and hallucinations.
+ * Communicates with PersonalitySystem to manage tier thresholds and UI stats.
  */
 export class SanitySystem {
     constructor(game) {
@@ -10,14 +9,13 @@ export class SanitySystem {
         this.currentSanity = 100;
         this.maxSanity = 100;
         this.tier = 'STABLE'; // 'STABLE', 'DISTORTED', 'CRITICAL'
-        this.forcedTakeoverCooldown = 0;
     }
 
     update(dt) {
         const player = this.game.player;
         if (!player || player.isDead) return;
 
-        // Baseline slow drain in Tyler mode, slight passive recovery in Rational mode
+        // Baseline slow drain in Tyler mode, slight passive recovery in Narrator mode
         if (player.currentMode === 'tyler') {
             this.currentSanity = Math.max(0, this.currentSanity - 3.2 * dt);
         } else {
@@ -35,19 +33,7 @@ export class SanitySystem {
             this.tier = 'CRITICAL';
         }
 
-        // Automatic Tyler takeover when sanity collapses
-        this.forcedTakeoverCooldown -= dt;
-        if (this.currentSanity <= 30 && player.currentMode === 'rational' && this.forcedTakeoverCooldown <= 0) {
-            player.switchMode('tyler');
-            if (this.game.audio) this.game.audio.playTylerGlitch();
-            this.forcedTakeoverCooldown = 10.0;
-        } else if (this.currentSanity >= 70 && player.currentMode === 'tyler' && this.forcedTakeoverCooldown <= 0) {
-            // Rational control restored
-            player.switchMode('rational');
-            this.forcedTakeoverCooldown = 6.0;
-        }
-
-        // Sync UI
+        // Sync UI stats
         if (this.game.ui) {
             const staminaPercent = player.stamina / player.stats[player.currentMode].maxStamina;
             const healthPercent = player.health / player.stats[player.currentMode].maxHealth;
@@ -58,6 +44,10 @@ export class SanitySystem {
 
     loseSanity(amount) {
         this.currentSanity = Math.max(0, this.currentSanity - amount);
+    }
+
+    drain(amount) {
+        this.loseSanity(amount);
     }
 
     gainSanity(amount) {

@@ -1,7 +1,7 @@
 /**
  * Audio Engine: Web Audio API synthesis for Project Mayhem.
  * Generates punchy impacts, whooshes, blocks, low-sanity distortion drones,
- * and subterranean room tone without external audio file dependencies.
+ * heartbeat thumps, breathless gasps, and subterranean room tone without external audio file dependencies.
  */
 export class SoundEngine {
     constructor() {
@@ -76,7 +76,7 @@ export class SoundEngine {
         oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
 
         // Noise crunch layer
-        const bufferSize = this.ctx.sampleRate * 0.12;
+        const bufferSize = Math.floor(this.ctx.sampleRate * 0.12);
         const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
         const data = buffer.getChannelData(0);
         for (let i = 0; i < bufferSize; i++) {
@@ -148,6 +148,64 @@ export class SoundEngine {
 
         osc.start(now);
         osc.stop(now + 0.26);
+    }
+
+    playHeartbeat() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+
+        const playThump = (timeOffset, freq, duration, volume) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now + timeOffset);
+            osc.frequency.exponentialRampToValueAtTime(28, now + timeOffset + duration);
+
+            gain.gain.setValueAtTime(volume, now + timeOffset);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + timeOffset + duration);
+
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+
+            osc.start(now + timeOffset);
+            osc.stop(now + timeOffset + duration + 0.01);
+        };
+
+        playThump(0.0, 78, 0.18, 0.6);
+        playThump(0.22, 62, 0.24, 0.5);
+    }
+
+    playGasp() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+
+        const bufferSize = Math.floor(this.ctx.sampleRate * 0.35);
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+            data[i] = (Math.random() * 2 - 1) * Math.sin(Math.PI * (i / bufferSize));
+        }
+
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(800, now);
+        filter.frequency.exponentialRampToValueAtTime(1400, now + 0.35);
+        filter.Q.setValueAtTime(2.0, now);
+
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.05, now);
+        gain.gain.linearRampToValueAtTime(0.4, now + 0.2);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        noise.start(now);
     }
 
     startAmbientDrone() {

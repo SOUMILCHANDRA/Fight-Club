@@ -270,16 +270,21 @@
     #personality-desc {
       font-size: 0.6rem;
       letter-spacing: 1px;
-      color: #666;
+      color: #888;
       margin-top: 4px;
-      max-width: 280px;
+      max-width: 320px;
+      line-height: 1.35;
     }
 
     /* REBUILT CONTROLS HUD (Bottom Right) */
-    .controls-panel {
+    .controls-wrapper {
       position: absolute;
       bottom: 25px;
       right: 30px;
+      pointer-events: auto;
+    }
+
+    .controls-panel {
       display: grid;
       grid-template-columns: auto 1fr;
       column-gap: 10px;
@@ -290,6 +295,38 @@
       border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 6px;
       backdrop-filter: blur(4px);
+      transition: opacity 0.3s ease, filter 0.3s ease;
+    }
+
+    .controls-panel.no-control {
+      opacity: 0.35;
+      filter: grayscale(0.8) blur(1px);
+    }
+
+    .no-control-badge {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(255, 23, 68, 0.95);
+      color: #fff;
+      font-family: var(--font-sans);
+      font-weight: 900;
+      font-size: 0.78rem;
+      letter-spacing: 2px;
+      padding: 8px 16px;
+      border-radius: 4px;
+      box-shadow: 0 0 25px rgba(255, 23, 68, 0.85);
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: 5;
+      text-transform: uppercase;
+      animation: tylerPulse 0.9s infinite alternate;
+    }
+
+    .controls-wrapper.no-control .no-control-badge {
+      display: block;
     }
 
     .controls-key {
@@ -318,6 +355,117 @@
       letter-spacing: 1px;
       color: #bbb;
       text-transform: uppercase;
+    }
+
+    /* CONTROL STRUGGLE METER (Top Center during Tyler Takeover) */
+    #control-meter-container {
+      position: absolute;
+      top: 75px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      background: rgba(12, 8, 14, 0.9);
+      border: 1px solid rgba(255, 23, 68, 0.75);
+      padding: 10px 22px;
+      border-radius: 6px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 0 30px rgba(255, 23, 68, 0.5);
+      z-index: 70;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    #control-meter-container.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, -15px);
+      display: none;
+    }
+
+    .control-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .control-alert {
+      font-family: var(--font-sans);
+      font-weight: 900;
+      font-size: 0.78rem;
+      letter-spacing: 2px;
+      color: #ff1744;
+      text-shadow: 0 0 12px rgba(255, 23, 68, 0.8);
+      animation: tylerPulse 0.8s infinite alternate;
+    }
+
+    .control-hint {
+      font-size: 0.65rem;
+      letter-spacing: 1.5px;
+      color: #e0e0e0;
+      text-transform: uppercase;
+    }
+
+    .control-bar {
+      width: 320px;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    #control-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #ff1744, #00d4ff);
+      box-shadow: 0 0 12px #00d4ff;
+      transition: width 0.1s linear;
+    }
+
+    /* SUBTITLE MONOLOGUE (Bottom Center) */
+    #subtitle-monologue {
+      position: absolute;
+      bottom: 85px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: var(--font-mono);
+      font-style: italic;
+      font-size: 1.05rem;
+      color: #f0f0f8;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.95), 0 0 16px rgba(0, 212, 255, 0.45);
+      text-align: center;
+      max-width: 680px;
+      letter-spacing: 1px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.35s ease;
+      z-index: 60;
+    }
+
+    #subtitle-monologue.active {
+      opacity: 1;
+    }
+
+    /* FILM GRAIN & CONTRAST GRADE (Active during sideline out-of-body view) */
+    #film-grain-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      opacity: 0;
+      z-index: 14;
+      background: radial-gradient(circle at center, transparent 35%, rgba(0, 0, 0, 0.65) 100%);
+      backdrop-filter: contrast(120%) brightness(92%);
+      transition: opacity 0.4s ease;
+    }
+
+    #film-grain-overlay.active {
+      opacity: 1;
     }
 
     /* Floating Combat Damage Numbers */
@@ -582,6 +730,7 @@
   <div id="screen-flash"></div>
   <div id="damage-vignette"></div>
   <div id="damage-container"></div>
+  <div id="film-grain-overlay"></div>
 
   <!-- IN-GAME UI -->
   <div id="ui-container">
@@ -632,32 +781,49 @@
     <!-- Mode Indicator -->
     <div id="personality-indicator">
       <div class="mode-tag">MENTAL STATE</div>
-      <span id="personality-name" class="mode-rational">RATIONAL YOU</span>
-      <div id="personality-desc">TACTICAL COUNTERS // CLEAN DEFENSE // GROUNDED</div>
+      <span id="personality-name" class="mode-rational">NARRATOR</span>
+      <div id="personality-desc">CAREFUL // TACTICAL // EASILY HURT // BLOCKS REGAIN STAMINA</div>
     </div>
 
-    <!-- Rebuilt Controls Panel (Grid layout, clean spacing) -->
-    <div class="controls-panel">
-      <div class="controls-key"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></div>
-      <div class="controls-label">Move</div>
+    <!-- Struggle Control Meter (Tyler Takeover) -->
+    <div id="control-meter-container" class="hidden">
+      <div class="control-header">
+        <span class="control-alert">⚠️ PSYCHIATRIC SEIZURE: TYLER TOOK CONTROL</span>
+        <span class="control-hint">MASH [TAB] OR HOLD [L] TO FIGHT FOR CONSCIOUSNESS</span>
+      </div>
+      <div class="control-bar">
+        <div id="control-bar-fill" style="width: 0%;"></div>
+      </div>
+    </div>
 
-      <div class="controls-key"><kbd>SPACE</kbd></div>
-      <div class="controls-label">Dodge</div>
+    <!-- Subtitle Monologue Voiceover -->
+    <div id="subtitle-monologue"></div>
 
-      <div class="controls-key"><kbd>J</kbd></div>
-      <div class="controls-label">Light Jab</div>
+    <!-- Controls Panel (Grid layout with No-Control Overlay) -->
+    <div class="controls-wrapper" id="controls-wrapper">
+      <div class="controls-panel" id="controls-panel">
+        <div class="controls-key"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></div>
+        <div class="controls-label">Move</div>
 
-      <div class="controls-key"><kbd>K</kbd></div>
-      <div class="controls-label">Heavy Haymaker</div>
+        <div class="controls-key"><kbd>SPACE</kbd></div>
+        <div class="controls-label">Dodge</div>
 
-      <div class="controls-key"><kbd>L</kbd></div>
-      <div class="controls-label">Guard / Block</div>
+        <div class="controls-key"><kbd>J</kbd></div>
+        <div class="controls-label">Light Jab</div>
 
-      <div class="controls-key"><kbd>TAB</kbd></div>
-      <div class="controls-label" id="controls-tab-label">Shift Mind <span id="mode-badge" style="color: #00d4ff; font-weight: 700; margin-left: 4px;">[RATIONAL]</span></div>
+        <div class="controls-key"><kbd>K</kbd></div>
+        <div class="controls-label">Heavy Haymaker</div>
 
-      <div class="controls-key"><kbd>H</kbd></div>
-      <div class="controls-label">Hitboxes</div>
+        <div class="controls-key"><kbd>L</kbd></div>
+        <div class="controls-label">Guard / Block</div>
+
+        <div class="controls-key"><kbd>TAB</kbd></div>
+        <div class="controls-label" id="controls-tab-label">Shift Mind <span id="mode-badge" style="color: #00d4ff; font-weight: 700; margin-left: 4px;">[NARRATOR]</span></div>
+
+        <div class="controls-key"><kbd>H</kbd></div>
+        <div class="controls-label">Hitboxes</div>
+      </div>
+      <div class="no-control-badge">⚠️ NO CONTROL // TYLER IN CHARGE</div>
     </div>
 
     <div id="game-toast"></div>

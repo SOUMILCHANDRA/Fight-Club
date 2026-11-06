@@ -3,7 +3,8 @@ import * as THREE from 'three';
 /**
  * Player Entity: Full-body animated humanoid with AnimationMixer,
  * combat cross-fading (idle, walk, punches, dodge, block, hit, KO),
- * damage flashing, stamina, and dual-personality switching.
+ * dynamic bruise/blood buildup, dual-personality switching (Narrator vs Tyler),
+ * and autonomous input locking during Tyler takeover.
  */
 export class Player {
     constructor(game) {
@@ -13,7 +14,7 @@ export class Player {
         // Root container for world transform
         this.mesh = new THREE.Group();
         this.mesh.name = 'PlayerRoot';
-        this.mesh.position.set(0, 0, 2.2);
+        this.mesh.position.set(0, 0, 1.5);
         this.mesh.rotation.y = Math.PI; // Face north across ring
 
         // Visual root holding the active model
@@ -25,14 +26,30 @@ export class Player {
         this.mixer = null;
         this.actions = {};
         this.currentAction = null;
-        this.currentState = 'idle'; // 'idle', 'walk', 'light_punch', 'heavy_punch', 'dodge', 'block', 'hit', 'ko'
+        this.currentState = 'idle';
 
-        this.currentMode = 'rational'; // 'rational' vs 'tyler'
+        this.currentMode = 'rational'; // 'rational' (Narrator) vs 'tyler'
 
-        // Combat stats per mode
+        // Combat stats per persona:
+        // - Narrator: careful, tactical, easily hurt (takes +25% damage), regains stamina by blocking
+        // - Tyler: reckless, hits harder (+85% power), ignores pain (50% reduction), drains sanity
         this.stats = {
-            rational: { speed: 4.5, maxHealth: 100, maxStamina: 100, attackPower: 14, animSpeed: 1.0 },
-            tyler: { speed: 6.2, maxHealth: 130, maxStamina: 140, attackPower: 26, animSpeed: 1.25 }
+            rational: { 
+                speed: 4.5, 
+                maxHealth: 100, 
+                maxStamina: 100, 
+                attackPower: 14, 
+                damageTakenMultiplier: 1.25, 
+                animSpeed: 1.0 
+            },
+            tyler: { 
+                speed: 6.2, 
+                maxHealth: 130, 
+                maxStamina: 140, 
+                attackPower: 26, 
+                damageTakenMultiplier: 0.50, 
+                animSpeed: 1.25 
+            }
         };
 
         this.health = 100;
@@ -134,7 +151,7 @@ export class Player {
 
         this.currentMode = nextMode;
 
-        // Re-load model accessories and theme for the active persona (Tyler vs Narrator)
+        // Re-load model accessories and theme for active persona
         this.loadModel(this.currentMode);
 
         // Adjust rim light color to match persona
@@ -142,7 +159,7 @@ export class Player {
             this.rimLight.color.setHex(this.currentMode === 'rational' ? 0x00d4ff : 0xff1744);
         }
 
-        // Trigger visible screen transition (flash + glitch burst)
+        // Trigger visible screen transition (glitch burst)
         if (this.game.effects) {
             this.game.effects.glitchBurst(0.45);
         }
@@ -174,9 +191,27 @@ export class Player {
         const input = this.game.input;
         if (!input) return;
 
-        // Manual Alter Ego toggle with Tab
+        // 1. Autonomous Tyler Takeover: Player has LOST conscious control of the body!
+        if (this.game.personality && this.game.personality.isTylerAutonomous) {
+            // Mashing TAB pumps struggle meter to break Tyler's grip
+            if (input.isJustPressed('Tab')) {
+                this.game.personality.pumpControl(12);
+            }
+            // Holding L guard also struggles for conscious control
+            if (input.isPressed('l') || input.isPressed('L')) {
+                this.game.personality.pumpControl(18 * dt);
+            }
+            // Standard inputs are LOCKED. TylerAI drives movement and attacks!
+            return;
+        }
+
+        // 2. Normal conscious control (Narrator / Voluntary Tyler)
         if (input.isJustPressed('Tab')) {
-            this.switchMode();
+            if (this.game.personality) {
+                this.game.personality.tryVoluntaryShift();
+            } else {
+                this.switchMode();
+            }
         }
 
         // Guard / Block (Hold L)
@@ -221,7 +256,7 @@ export class Player {
         }
 
         // Locomotion if not attacking or blocking
-        if (!['light_punch', 'heavy_punch', 'hit', 'heavy_hit'].includes(this.currentState)) {
+        if (!['light_punch', 'heavy_punch', 'hit', 'heavy_hit', 'jab', 'cross', 'hook'].includes(this.currentState)) {
             this.handleMovement(dt);
         }
     }
@@ -302,7 +337,6 @@ export class Player {
     }
 
     clampInsideRing() {
-        // Enforce boundary inside the 14x14 fighting ring (safety margin ±6.2)
         const limit = 6.2;
         this.mesh.position.x = Math.max(-limit, Math.min(limit, this.mesh.position.x));
         this.mesh.position.z = Math.max(-limit, Math.min(limit, this.mesh.position.z));
@@ -317,7 +351,6 @@ export class Player {
         // Turn squarely toward opponent before delivering strike
         this.faceOpponent(1.0, 25);
 
-        // Alternate jabs & crosses for light punches, heavy hook for power swing
         if (!this.comboCounter) this.comboCounter = 0;
         this.comboCounter++;
 
@@ -356,24 +389,47 @@ export class Player {
             this.game.ui.pulseDamageVignette();
         }
 
-        let damage = rawDamage;
+        // Damage calculation modified by personality:
+        // Narrator: takes 1.25x damage (easily hurt)
+        // Tyler: takes 0.50x damage (ignores pain)
+        const damageMultiplier = this.stats[this.currentMode].damageTakenMultiplier;
+        let damage = rawDamage * damageMultiplier;
+
         if (this.isBlocking) {
-            damage *= 0.25; // 75% reduction
-            this.stamina = Math.max(0, this.stamina - rawDamage * 0.5);
-            if (this.game.sanity) this.game.sanity.gainSanity(5);
+            damage *= 0.25; // 75% guard reduction
+            // Narrator: regains stamina by blocking cleanly!
+            if (this.currentMode === 'rational') {
+                this.stamina = Math.min(this.stats[this.currentMode].maxStamina, this.stamina + 25);
+            } else {
+                this.stamina = Math.max(0, this.stamina - rawDamage * 0.4);
+            }
+
+            if (this.game.sanity) this.game.sanity.gainSanity(6);
             if (this.game.audio) this.game.audio.playBlock();
-            if (this.game.cameraShake) this.game.cameraShake(0.15);
+            if (this.game.cameraDirector) this.game.cameraDirector.shake(0.15);
             if (this.game.ui) this.game.ui.showDamageText(this.mesh.position, `BLOCKED -${Math.round(damage)}`, '#00d4ff');
             this.flashDamage(0x4488ff);
         } else {
             this.health = Math.max(0, this.health - damage);
             const isHeavyHit = damage >= 20;
-            this.playAction(isHeavyHit ? 'hit_heavy' : 'hit_light', 0.06);
+
+            // Tyler ignores stagger completely! Narrator plays flinch/stagger reaction
+            if (this.currentMode === 'tyler') {
+                // Flash white, don't interrupt attacks, laugh off the hit
+                this.flashDamage(0xff3344);
+                if (Math.random() < 0.3) {
+                    if (this.game.audio) this.game.audio.playTylerGlitch();
+                }
+            } else {
+                // Narrator staggers under heavy impact
+                this.playAction(isHeavyHit ? 'hit_heavy' : 'hit_light', 0.06);
+                this.flashDamage(0xffffff);
+            }
+
             if (this.game.audio) this.game.audio.playHit(isHeavyHit ? 1.4 : 1.0);
-            if (this.game.cameraShake) this.game.cameraShake(isHeavyHit ? 0.6 : 0.3);
+            if (this.game.cameraDirector) this.game.cameraDirector.shake(isHeavyHit ? 0.6 : 0.3);
             if (this.game.effects) this.game.effects.glitchBurst(0.25);
             if (this.game.ui) this.game.ui.showDamageText(this.mesh.position, `-${Math.round(damage)}`, '#ff1744');
-            this.flashDamage(0xffffff);
 
             // Update dynamic bruise & blood buildup on face & shirt
             this.updateInjuries();
@@ -382,13 +438,15 @@ export class Player {
             if (attacker) {
                 const kb = new THREE.Vector3().subVectors(this.mesh.position, attacker.mesh.position).normalize();
                 kb.y = 0;
-                this.mesh.position.addScaledVector(kb, isHeavyHit ? 0.65 : 0.35);
+                // Tyler has increased knockback resistance
+                const kbScale = this.currentMode === 'tyler' ? 0.35 : 1.0;
+                this.mesh.position.addScaledVector(kb, (isHeavyHit ? 0.65 : 0.35) * kbScale);
                 this.clampInsideRing();
             }
 
             // Sanity drain
             if (this.game.sanity) {
-                this.game.sanity.loseSanity(damage * 0.8);
+                this.game.sanity.loseSanity(damage * 0.85);
             }
         }
 
@@ -417,14 +475,22 @@ export class Player {
     die() {
         this.isDead = true;
         this.playAction('ko', 0.1);
+        const isTakeoverLoss = this.game.personality && this.game.personality.isTylerAutonomous;
         if (this.game.onGameOver) {
-            this.game.onGameOver(false);
+            this.game.onGameOver(false, isTakeoverLoss);
         }
     }
 
     updateStats(dt) {
         const maxStamina = this.stats[this.currentMode].maxStamina;
-        const regenRate = this.isBlocking ? 6 : 22;
+        // Narrator: regains stamina quickly when blocking
+        let regenRate = 22;
+        if (this.currentMode === 'rational' && this.isBlocking) {
+            regenRate = 42;
+        } else if (this.isBlocking) {
+            regenRate = 8;
+        }
+
         if (this.stamina < maxStamina && !this.isDodging) {
             this.stamina = Math.min(maxStamina, this.stamina + regenRate * dt);
         }

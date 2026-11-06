@@ -2,8 +2,9 @@ import * as THREE from 'three';
 
 /**
  * UIManager: Manages HUD meters (Health, Stamina, Sanity, Enemy Health),
- * floating combat damage indicators, personality badges, screen flash transitions,
- * loading screen, start menu, and victory/game-over screens.
+ * floating combat damage indicators, personality badges (Narrator vs Tyler),
+ * struggle control meter during autonomous takeover, sideline monologue subtitles,
+ * film grain overlays, screen flash transitions, and victory/game-over screens.
  */
 export class UIManager {
     constructor() {
@@ -41,10 +42,20 @@ export class UIManager {
         this.glitchOverlay = document.getElementById('glitch-overlay');
         this.screenFlash = document.getElementById('screen-flash');
         this.damageVignette = document.getElementById('damage-vignette');
+        this.filmGrainOverlay = document.getElementById('film-grain-overlay');
+
+        // Takeover & Struggle HUD
+        this.controlMeterContainer = document.getElementById('control-meter-container');
+        this.controlBarFill = document.getElementById('control-bar-fill');
+        this.subtitleMonologue = document.getElementById('subtitle-monologue');
+        this.controlsWrapper = document.getElementById('controls-wrapper');
+        this.controlsPanel = document.getElementById('controls-panel');
 
         // Toast & Floating Damage container
         this.toast = document.getElementById('game-toast');
         this.damageContainer = document.getElementById('damage-container');
+        this.subtitleTimeout = null;
+        this.toastTimeout = null;
     }
 
     setGame(game) {
@@ -72,11 +83,16 @@ export class UIManager {
         }
     }
 
-    showGameOver(isVictory) {
+    showGameOver(isVictory, isTylerTakeoverLoss = false) {
         if (!this.gameoverModal) return;
         this.gameoverModal.classList.remove('hidden');
 
-        if (isVictory) {
+        if (isTylerTakeoverLoss) {
+            this.gameoverTitle.innerText = 'TYLER WON. YOU LOST.';
+            this.gameoverTitle.style.color = '#ff1744';
+            this.gameoverSubtitle.innerText = '"Tyler took your body, beat the enemy into pulp, but you died in the process. A copy of a copy."';
+            this.btnRestart.innerText = 'WAKE UP';
+        } else if (isVictory) {
             this.gameoverTitle.innerText = 'YOU WIN // OPPONENT DOWN';
             this.gameoverTitle.style.color = '#00d4ff';
             this.gameoverSubtitle.innerText = '"You broke the rules and survived. The club respects power."';
@@ -175,7 +191,6 @@ export class UIManager {
         clearTimeout(this.vignetteTimeout);
         this.vignetteTimeout = setTimeout(() => {
             if (this.damageVignette) {
-                // If health is under 30%, keep a subtle persistent danger glow
                 const healthRatio = this.game && this.game.player ? this.game.player.health / 100 : 1;
                 this.damageVignette.style.opacity = healthRatio < 0.3 ? '0.35' : '0';
             }
@@ -185,12 +200,12 @@ export class UIManager {
     updatePersonality(mode) {
         if (!this.personalityName) return;
         const isTyler = mode.toLowerCase() === 'tyler';
-        this.personalityName.innerText = isTyler ? 'TYLER DURDEN' : 'RATIONAL YOU';
+        this.personalityName.innerText = isTyler ? 'TYLER DURDEN' : 'NARRATOR';
         this.personalityName.className = isTyler ? 'mode-tyler' : 'mode-rational';
 
         // Update controls panel TAB badge
         if (this.modeBadge) {
-            this.modeBadge.innerText = isTyler ? '[TYLER]' : '[RATIONAL]';
+            this.modeBadge.innerText = isTyler ? '[TYLER]' : '[NARRATOR]';
             this.modeBadge.style.color = isTyler ? '#ff1744' : '#00d4ff';
             this.modeBadge.style.textShadow = isTyler 
                 ? '0 0 10px rgba(255, 23, 68, 0.8)' 
@@ -199,8 +214,8 @@ export class UIManager {
 
         if (this.personalityDesc) {
             this.personalityDesc.innerText = isTyler 
-                ? 'AGGRESSIVE COMBO POWER // ZERO INHIBITION // UNSTABLE'
-                : 'TACTICAL COUNTERS // CLEAN DEFENSE // GROUNDED';
+                ? 'RECKLESS // HITS HARDER // IGNORES PAIN // DRAINS SANITY'
+                : 'CAREFUL // TACTICAL // EASILY HURT // BLOCKS REGAIN STAMINA';
         }
 
         // Screen Flash Transition with color change
@@ -211,7 +226,62 @@ export class UIManager {
                 this.screenFlash.style.opacity = '0';
             }, 200);
         }
+    }
 
-        this.showToast(isTyler ? '⚠️ ALTER EGO MANIFESTED: TYLER DURDEN' : 'CALM RESTORED: RATIONAL MIND');
+    setTylerTakeoverUI(active) {
+        if (this.controlMeterContainer) {
+            if (active) {
+                this.controlMeterContainer.classList.remove('hidden');
+            } else {
+                this.controlMeterContainer.classList.add('hidden');
+            }
+        }
+
+        if (this.controlsWrapper) {
+            if (active) {
+                this.controlsWrapper.classList.add('no-control');
+            } else {
+                this.controlsWrapper.classList.remove('no-control');
+            }
+        }
+
+        if (this.controlsPanel) {
+            if (active) {
+                this.controlsPanel.classList.add('no-control');
+            } else {
+                this.controlsPanel.classList.remove('no-control');
+            }
+        }
+
+        if (this.filmGrainOverlay) {
+            if (active) {
+                this.filmGrainOverlay.classList.add('active');
+            } else {
+                this.filmGrainOverlay.classList.remove('active');
+            }
+        }
+
+        if (!active && this.subtitleMonologue) {
+            this.subtitleMonologue.classList.remove('active');
+        }
+    }
+
+    updateControlMeter(percent) {
+        if (this.controlBarFill) {
+            this.controlBarFill.style.width = `${Math.min(100, Math.max(0, percent))}%`;
+        }
+    }
+
+    showSubtitle(text, duration = 3.5) {
+        if (!this.subtitleMonologue) return;
+        this.subtitleMonologue.innerText = text;
+        this.subtitleMonologue.classList.add('active');
+
+        clearTimeout(this.subtitleTimeout);
+        this.subtitleTimeout = setTimeout(() => {
+            if (this.subtitleMonologue) {
+                this.subtitleMonologue.classList.remove('active');
+            }
+        }, duration * 1000);
     }
 }
